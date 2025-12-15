@@ -1,0 +1,2 @@
+# Minecraft_Error_698
+LDTで作られた、呪いのMinecraftバージョン第3弾
