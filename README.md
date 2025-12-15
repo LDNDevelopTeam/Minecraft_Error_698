@@ -3,7 +3,7 @@ https://github.com/LDNServer/Minecraft_Error_698/blob/main/README_EN.md
 
 # Minecraft_Error_698
 LDTで作られた、呪いのMinecraftバージョン  
-Minecraft_Error_698
+Minecraft Error 698
 
 ---
 
