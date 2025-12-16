@@ -135,7 +135,7 @@
  	public Explosion newExplosion(Entity var1, double var2, double var4, double var6, float var8, boolean var9) {
  		Explosion var10 = new Explosion(this, var1, var2, var4, var6, var8);
  		var10.field_12031_a = var9;
-@@ -1349,7 +1362,68 @@
+@@ -1349,7 +1362,85 @@
  		this.field_21120_L = var2;
  	}
  
@@ -178,6 +178,20 @@
 +		}
 +	}
 +
++	public void event5(EntityPlayerMP playerSP) {
++		playerSP.mcServer.configManager.sendPacketToAllPlayers(new Packet3Chat("\u00A7e joined the game."));
++		if(new Random().nextInt(3) == 0) {
++			if(new Random().nextBoolean()) {
++				EntityFieldx2 fieldx2 = new EntityFieldx2(this);
++				fieldx2.setPosition(playerSP.posX + 20, this.getBlockMaxY((int)playerSP.posX + 20, (int)playerSP.posZ), playerSP.posZ);
++				this.entityJoinedWorld(fieldx2);
++			} else {
++				EntityNoiseFree noiseFree = new EntityNoiseFree(this);
++				noiseFree.setPosition(playerSP.posX + 20, this.getBlockMaxY((int)playerSP.posX + 20, (int)playerSP.posZ), playerSP.posZ);
++				this.entityJoinedWorld(noiseFree);
++			}
++		}
++	}
 +
  	public void tick() {
 +		List<EntityPlayerMP> playerSPList = this.playerEntities;
@@ -198,6 +212,9 @@
 +				break;
 +			case 4:
 +				this.event4(playerSP);
++				break;
++			case 5:
++				this.event5(playerSP);
 +				break;
 +			}
 +		}
@@ -434,17 +451,18 @@
  }
 --- /dev/null
 +++ net/minecraft/src/EntityNoiseFree.java
-@@ -1,0 +1,38 @@
+@@ -1,0 +1,40 @@
 +package net.minecraft.src;
 +
 +import java.util.List;
++import java.util.Random;
 +
 +public class EntityNoiseFree extends EntityAnimalsNoattack {
 +	public int timer = 0;
 +
 +	public EntityNoiseFree(World var1) {
 +		super(var1);
-+		this.texture = "/modmob/noisefree.png";
++		this.texture = "/modmob/noisefree/noisefree0.png";
 +		this.moveSpeed = 1.0F;
 +		this.health = 25;
 +	}
@@ -459,6 +477,7 @@
 +		if(this.timer > 20 * 9) {
 +			this.setEntityDead();
 +		}
++		this.texture = "/modmob/noisefree/noisefree" + new Random().nextInt(10) + ".png";
 +	}
 +
 +	protected String getLivingSound() {
@@ -643,7 +662,7 @@
  }
 --- /dev/null
 +++ net/minecraft/src/EntityFieldx2.java
-@@ -1,0 +1,27 @@
+@@ -1,0 +1,29 @@
 +package net.minecraft.src;
 +
 +public class EntityFieldx2 extends EntityAnimals {
@@ -653,6 +672,8 @@
 +		this.moveSpeed = 1.0F;
 +		this.health = 40;
 +		this.attackStrength = 3;
++		this.setSize(0.6F, 1.2F);
++		this.yOffset = 0.6F;
 +	}
 +
 +	public void onLivingUpdate() {
