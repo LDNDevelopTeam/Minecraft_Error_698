@@ -662,7 +662,7 @@
  }
 --- /dev/null
 +++ net/minecraft/src/EntityFieldx2.java
-@@ -1,0 +1,29 @@
+@@ -1,0 +1,28 @@
 +package net.minecraft.src;
 +
 +public class EntityFieldx2 extends EntityAnimals {
@@ -670,10 +670,9 @@
 +		super(var1);
 +		this.texture = "/modmob/fieldx2.png";
 +		this.moveSpeed = 1.0F;
-+		this.health = 40;
++		this.health = 120;
 +		this.attackStrength = 3;
-+		this.setSize(0.6F, 1.2F);
-+		this.yOffset = 0.6F;
++		this.yOffset = -0.6F;
 +	}
 +
 +	public void onLivingUpdate() {
@@ -928,7 +927,7 @@
 +		super(var1);
 +		this.texture = "/modmob/should.png";
 +		this.moveSpeed = 1.0F;
-+		this.health = 40;
++		this.health = 15;
 +		this.attackStrength = 3;
 +	}
 +
