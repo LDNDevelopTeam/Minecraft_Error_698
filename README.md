@@ -1,3 +1,5 @@
+<img alt="GitHub Downloads (all releases)" src="https://img.shields.io/github/downloads/LDNServer/Minecraft_Error_698/total?style=for-the-badge">
+
 ## English
 https://github.com/LDNServer/Minecraft_Error_698/blob/main/README_EN.md
 
