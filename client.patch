@@ -1713,7 +1713,7 @@
  												}
  
 +												if(Keyboard.getEventKey() == Keyboard.KEY_N && Keyboard.isKeyDown(Keyboard.KEY_F6)) {
-+													this.theWorld.event4(this.thePlayer);
++													//this.theWorld.event1(this.thePlayer);
 +												}
 +
  												if(Keyboard.getEventKey() == Keyboard.KEY_F5) {
