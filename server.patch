@@ -503,7 +503,7 @@
 +		super.onLivingUpdate();
 +		List<EntityPlayerMP> playerSPList = this.worldObj.playerEntities;
 +		if(!playerSPList.isEmpty()) {
-+			playerSPList.get(0).mcServer.configManager.sendPacketToAllPlayers(new Packet80Event());
++			playerSPList.get(0).mcServer.configManager.sendPacketToAllPlayers(new Packet80Event(2));
 +		}
 +		this.timer++;
 +		if(this.timer > 20 * 9) {
