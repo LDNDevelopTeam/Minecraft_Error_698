@@ -5,7 +5,7 @@
  	public int field_6161_q = 5169201;
  	protected Class[] biomeMonsters = new Class[]{EntitySpider.class, EntityZombie.class, EntitySkeleton.class, EntityCreeper.class};
 -	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class};
-+	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class, EntityPP.class, EntityShould.class, Entity5W1H.class};
++	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class, EntityPP.class, EntityShould.class, Entity5W1H.class, EntityS.class};
  	protected Class[] biomeWaterCreatures = new Class[]{EntitySquid.class};
  	private static MobSpawnerBase[] biomeLookupTable = new MobSpawnerBase[4096];
  
@@ -221,6 +221,38 @@
  		SpawnerAnimals.performSpawning(this, this.field_21121_K, this.field_21120_L);
  		this.chunkProvider.func_361_a();
  		int var1 = this.calculateSkylightSubtracted(1.0F);
+--- /dev/null
++++ net/minecraft/src/EntityS.java
+@@ -1,0 +1,29 @@
++package net.minecraft.src;
++
++public class EntityS extends EntityAnimals {
++	public int timer = 0;
++
++	public EntityS(World var1) {
++		super(var1);
++		this.texture = "/modmob/s.png";
++		this.moveSpeed = 1.0F;
++		this.health = 10;
++		this.attackStrength = 2;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++	}
++
++	protected String getLivingSound() {
++		return super.getLivingSound();
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
 --- net/minecraft/src/WorldGenPumpkin.java
 +++ net/minecraft/src/WorldGenPumpkin.java
 @@ -4,12 +4,22 @@
@@ -768,7 +800,7 @@
 +}
 --- net/minecraft/src/EntityList.java
 +++ net/minecraft/src/EntityList.java
-@@ -84,5 +84,13 @@
+@@ -84,5 +84,14 @@
  		addMapping(EntityFallingSand.class, "FallingSand", 21);
  		addMapping(EntityMinecart.class, "Minecart", 40);
  		addMapping(EntityBoat.class, "Boat", 41);
@@ -780,6 +812,7 @@
 +		addMapping(EntityFieldx2.class, "FieldField", 105);
 +		addMapping(Entity5W1H.class, "5W1H", 106);
 +		addMapping(EntityVirusDream.class, "VirusDream", 107);
++		addMapping(EntityS.class, "S", 108);
  	}
  }
 --- net/minecraft/src/BlockChest.java

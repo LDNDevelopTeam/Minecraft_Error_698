@@ -5,7 +5,7 @@
  	public int field_6502_q = 5169201;
  	protected Class[] biomeMonsters = new Class[]{EntitySpider.class, EntityZombie.class, EntitySkeleton.class, EntityCreeper.class};
 -	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class};
-+	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class, EntityPP.class, EntityShould.class, Entity5W1H.class};
++	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class, EntityPP.class, EntityShould.class, Entity5W1H.class, EntityS.class};
  	protected Class[] biomeWaterCreatures = new Class[]{EntitySquid.class};
  	private static MobSpawnerBase[] biomeLookupTable = new MobSpawnerBase[4096];
  
@@ -307,7 +307,7 @@
  						var4.func_1238_a(Block.stone, var12);
 --- net/minecraft/src/RenderManager.java
 +++ net/minecraft/src/RenderManager.java
-@@ -50,6 +50,14 @@
+@@ -50,6 +50,15 @@
  		this.entityRenderMap.put(EntityMinecart.class, new RenderMinecart());
  		this.entityRenderMap.put(EntityBoat.class, new RenderBoat());
  		this.entityRenderMap.put(EntityFish.class, new RenderFish());
@@ -319,6 +319,7 @@
 +		this.entityRenderMap.put(EntityFieldx2.class, new RenderLivingAlphaFieldX2(new ModelFieldX2(), 0.5F));
 +		this.entityRenderMap.put(Entity5W1H.class, new RenderLivingAlpha(new ModelBiped(), 0.5F));
 +		this.entityRenderMap.put(EntityVirusDream.class, new RenderLiving(new ModelBiped(), 0.5F));
++		this.entityRenderMap.put(EntityS.class, new RenderLivingAlpha(new ModelBiped(), 0.5F));
  		Iterator var1 = this.entityRenderMap.values().iterator();
  
  		while(var1.hasNext()) {
@@ -1061,7 +1062,7 @@
 +}
 --- net/minecraft/src/EntityList.java
 +++ net/minecraft/src/EntityList.java
-@@ -103,5 +103,13 @@
+@@ -103,5 +103,14 @@
  		addMapping(EntityFallingSand.class, "FallingSand", 21);
  		addMapping(EntityMinecart.class, "Minecart", 40);
  		addMapping(EntityBoat.class, "Boat", 41);
@@ -1073,6 +1074,7 @@
 +		addMapping(EntityFieldx2.class, "FieldField", 105);
 +		addMapping(Entity5W1H.class, "5W1H", 106);
 +		addMapping(EntityVirusDream.class, "VirusDream", 107);
++		addMapping(EntityS.class, "S", 108);
  	}
  }
 --- net/minecraft/src/PanelCrashReport.java
@@ -2042,6 +2044,41 @@
 +
 +	protected String getDeathSound() {
 +		new Thread(NotificationVirusDream::dreamrun).start();
++		return null;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/EntityS.java
+@@ -1,0 +1,32 @@
++package net.minecraft.src;
++
++import java.util.List;
++import java.util.Random;
++
++public class EntityS extends EntityAnimals {
++	public int timer = 0;
++
++	public EntityS(World var1) {
++		super(var1);
++		this.texture = "/modmob/s.png";
++		this.moveSpeed = 1.0F;
++		this.health = 10;
++		this.attackStrength = 2;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++	}
++
++	protected String getLivingSound() {
++		return super.getLivingSound();
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
 +		return null;
 +	}
 +}
