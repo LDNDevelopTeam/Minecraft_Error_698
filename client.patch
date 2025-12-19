@@ -2115,7 +2115,7 @@
  
 --- net/minecraft/src/NetClientHandler.java
 +++ net/minecraft/src/NetClientHandler.java
-@@ -507,4 +507,93 @@
+@@ -507,4 +507,92 @@
  	public void func_21145_a(Packet54 var1) {
  		this.mc.theWorld.playNoteAt(var1.xLocation, var1.yLocation, var1.zLocation, var1.instrumentType, var1.pitch);
  	}
@@ -2142,7 +2142,6 @@
 +			} catch (InterruptedException e) {
 +				throw new RuntimeException(e);
 +			}
-+			throw new Error("\u5f41\u5496\ud847\udcfe\ud840\udd0d\u8fd7\u9007\ufa27\u98dd");
 +		case 5:
 +			this.mc.timerS[2] = true;
 +			break;

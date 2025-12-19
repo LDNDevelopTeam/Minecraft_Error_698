@@ -1161,7 +1161,7 @@
  
  public abstract class EntityPlayer extends EntityLiving {
  	public InventoryPlayer inventory = new InventoryPlayer(this);
-@@ -269,6 +270,40 @@
+@@ -269,6 +270,39 @@
  
  				if(this.worldObj.difficultySetting == 3) {
  					var2 = var2 * 3 / 2;
@@ -1169,36 +1169,35 @@
 +			}
 +
 +
-+			if(!this.worldObj.multiplayerWorld) {
-+				if(var1 instanceof EntityIrregularity) {
-+					if(this instanceof EntityPlayerMP) {
-+						((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(3));
-+					}
++			if(var1 instanceof EntityIrregularity) {
++				if(this instanceof EntityPlayerMP) {
++					((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(3));
++				}
++				var1.setEntityDead();
++			}
++			if(var1 instanceof EntityPP) {
++				if(new Random().nextBoolean()) {
++					this.worldObj.createExplosion(var1, 3.0F);
++					var1.setEntityDead();
++				} else {
++					this.inventory.dropAllItems();
 +					var1.setEntityDead();
 +				}
-+				if(var1 instanceof EntityPP) {
-+					if(new Random().nextBoolean()) {
-+						this.worldObj.createExplosion(var1, 3.0F);
-+						var1.setEntityDead();
-+					} else {
-+						this.inventory.dropAllItems();
-+						var1.setEntityDead();
-+					}
-+				}
-+				if(var1 instanceof EntityShould) {
-+					if(new Random().nextInt(10) == 0) {
-+						var1.setEntityDead();
-+						if(this instanceof EntityPlayerMP) {
-+							((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(4));
-+						}
-+					}
-+				}
-+				if(var1 instanceof EntityFieldx2) {
++			}
++			if(var1 instanceof EntityShould) {
++				if(new Random().nextInt(20) == 0) {
 +					var1.setEntityDead();
 +					if(this instanceof EntityPlayerMP) {
-+						((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet81Sound("/sounds/fieldx2.wav"));
-+						((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(5));
++						((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(4));
++						((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet255KickDisconnect("Should me"));
 +					}
++				}
++			}
++			if(var1 instanceof EntityFieldx2) {
++				var1.setEntityDead();
++				if(this instanceof EntityPlayerMP) {
++					((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet81Sound("/sounds/fieldx2.wav"));
++					((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(5));
  				}
  			}
  
