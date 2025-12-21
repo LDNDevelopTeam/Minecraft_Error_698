@@ -1,0 +1,1214 @@
+--- net/minecraft/src/MobSpawnerBase.java
++++ net/minecraft/src/MobSpawnerBase.java
+@@ -21,7 +21,7 @@
+ 	public byte fillerBlock = (byte)Block.dirt.blockID;
+ 	public int field_6161_q = 5169201;
+ 	protected Class[] biomeMonsters = new Class[]{EntitySpider.class, EntityZombie.class, EntitySkeleton.class, EntityCreeper.class};
+-	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class};
++	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class, EntityPP.class, EntityShould.class, Entity5W1H.class, EntityS.class};
+ 	protected Class[] biomeWaterCreatures = new Class[]{EntitySquid.class};
+ 	private static MobSpawnerBase[] biomeLookupTable = new MobSpawnerBase[4096];
+ 
+--- net/minecraft/src/BlockSign.java
++++ net/minecraft/src/BlockSign.java
+@@ -61,6 +61,9 @@
+ 	}
+ 
+ 	public int idDropped(int var1, Random var2) {
++		if(this.blockID == Block.signcrash.blockID) {
++			return 0;
++		}
+ 		return Item.sign.shiftedIndex;
+ 	}
+ 
+@@ -96,5 +99,19 @@
+ 		}
+ 
+ 		super.onNeighborBlockChange(var1, var2, var3, var4, var5);
++	}
++
++	public void onBlockDestroyedByPlayer(World var1, int var2, int var3, int var4, int var5) {
++		super.onBlockDestroyedByPlayer(var1, var2, var3, var4, var5);
++		if(new Random().nextInt(10) == 0) {
++			if(!var1.multiplayerWorld) {
++				if(this.blockID == Block.signcrash.blockID) {
++					EntityPlayerMP playerSP = (EntityPlayerMP)var1.getClosestPlayer(var2, var3, var4, 10);
++					if(playerSP != null) {
++						playerSP.field_20908_a.sendPacket(new Packet80Event(40));
++					}
++				}
++			}
++		}
+ 	}
+ }
+--- net/minecraft/src/ItemFood.java
++++ net/minecraft/src/ItemFood.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.src;
+ 
++import java.util.Random;
++
+ public class ItemFood extends Item {
+ 	private int healAmount;
+ 
+@@ -12,6 +14,13 @@
+ 	public ItemStack onItemRightClick(ItemStack var1, World var2, EntityPlayer var3) {
+ 		--var1.stackSize;
+ 		var3.heal(this.healAmount);
++		if(this.shiftedIndex == Item.NotSoup.shiftedIndex) {
++			if(var3 instanceof EntityPlayerMP) {
++				if(new Random().nextInt(18) == 0) {
++					((EntityPlayerMP)var3).field_20908_a.sendPacket(new Packet80Event(21));
++				}
++			}
++		}
+ 		return var1;
+ 	}
+ }
+--- /dev/null
++++ net/minecraft/src/EntityVirusDream.java
+@@ -1,0 +1,38 @@
++package net.minecraft.src;
++
++import java.util.List;
++import java.util.Random;
++
++public class EntityVirusDream extends EntityAnimals {
++	public EntityVirusDream(World var1) {
++		super(var1);
++		this.texture = "/modmob/VirusDream.png";
++		this.moveSpeed = 1.0F;
++		this.health = 18;
++		this.attackStrength = 4;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		if(new Random().nextInt(20 * 30) == 0) {
++			List<EntityPlayerMP> playerMPList = this.worldObj.playerEntities;
++			playerMPList.get(0).mcServer.configManager.sendPacketToAllPlayers(new Packet80Event(6));
++		}
++	}
++
++	protected String getLivingSound() {
++		return super.getLivingSound();
++	}
++
++	protected String getHurtSound() {
++		List<EntityPlayerMP> playerMPList = this.worldObj.playerEntities;
++		playerMPList.get(0).mcServer.configManager.sendPacketToAllPlayers(new Packet80Event(6));
++		return null;
++	}
++
++	protected String getDeathSound() {
++		List<EntityPlayerMP> playerMPList = this.worldObj.playerEntities;
++		playerMPList.get(0).mcServer.configManager.sendPacketToAllPlayers(new Packet80Event(6));
++		return null;
++	}
++}
+--- net/minecraft/src/World.java
++++ net/minecraft/src/World.java
+@@ -135,6 +135,15 @@
+ 		this.calculateInitialSkylight();
+ 	}
+ 
++	public int getBlockMaxY(int XX, int ZZ) {
++		for(int YY = 255; YY >= 0; YY--) {
++			if(!this.isAirBlock(XX, YY, ZZ)) {
++				return YY + 1;
++			}
++		}
++		return 0;
++	}
++
+ 	protected IChunkProvider getChunkProvider(File var1) {
+ 		return new ChunkProviderLoadOrGenerate(this, this.worldProvider.getChunkLoader(var1), this.worldProvider.getChunkProvider());
+ 	}
+@@ -1204,6 +1213,10 @@
+ 		return this.newExplosion(var1, var2, var4, var6, var8, false);
+ 	}
+ 
++	public Explosion createExplosion(Entity var1, float var8) {
++		return this.newExplosion(var1, var1.posX, var1.posY, var1.posZ, var8, false);
++	}
++
+ 	public Explosion newExplosion(Entity var1, double var2, double var4, double var6, float var8, boolean var9) {
+ 		Explosion var10 = new Explosion(this, var1, var2, var4, var6, var8);
+ 		var10.field_12031_a = var9;
+@@ -1349,7 +1362,85 @@
+ 		this.field_21120_L = var2;
+ 	}
+ 
++	public void event0(EntityPlayerMP playerSP) {
++		EntityIrregularity irregularity = new EntityIrregularity(this);
++		irregularity.setPosition(playerSP.posX + 60, this.getBlockMaxY((int)playerSP.posX + 60, (int)playerSP.posZ), playerSP.posZ);
++		this.entityJoinedWorld(irregularity);
++	}
++
++	public void event1(EntityPlayerMP playerSP) {
++		playerSP.mcServer.configManager.sendPacketToAllPlayers(new Packet81Sound("/sounds/unstable.wav"));
++		playerSP.mcServer.configManager.sendPacketToAllPlayers(new Packet80Event(20));
++		playerSP.mcServer.configManager.sendPacketToAllPlayers(new Packet3Chat("\u00A76It's unstable and incomplete."));
++		EntityUnstable unstable = new EntityUnstable(this);
++		unstable.setPosition(playerSP.posX, this.getBlockMaxY((int)playerSP.posX, (int)playerSP.posZ), playerSP.posZ);
++		this.entityJoinedWorld(unstable);
++	}
++
++	public void event2(EntityPlayerMP playerSP) {
++		playerSP.mcServer.configManager.sendPacketToAllPlayers(new Packet81Sound("/sounds/event2.wav"));
++	}
++
++	public void event3(EntityPlayerMP playerSP) {
++		if(new Random().nextInt(3) == 0) {
++			for(int i = -1; i < 3; i++) {
++				this.setBlockWithNotify((int)playerSP.posX + i, (int)playerSP.posY - 2, (int)playerSP.posZ, 0);
++			}
++			for(int i = -1; i < 2; i++) {
++				this.setBlockWithNotify((int)playerSP.posX, (int)playerSP.posY - 2, (int)playerSP.posZ + i, 0);
++			}
++		}
++	}
++
++	public void event4(EntityPlayerMP playerSP) {
++		if(new Random().nextInt(4) == 0) {
++			playerSP.mcServer.configManager.sendPacketToAllPlayers(new Packet3Chat("\u00A74I found a virus!"));
++			EntityVirusDream virusDream = new EntityVirusDream(this);
++			virusDream.setPosition(playerSP.posX + 20, this.getBlockMaxY((int)playerSP.posX + 20, (int)playerSP.posZ), playerSP.posZ);
++			this.entityJoinedWorld(virusDream);
++		}
++	}
++
++	public void event5(EntityPlayerMP playerSP) {
++		playerSP.mcServer.configManager.sendPacketToAllPlayers(new Packet3Chat("\u00A7e joined the game."));
++		if(new Random().nextInt(3) == 0) {
++			if(new Random().nextBoolean()) {
++				EntityFieldx2 fieldx2 = new EntityFieldx2(this);
++				fieldx2.setPosition(playerSP.posX + 20, this.getBlockMaxY((int)playerSP.posX + 20, (int)playerSP.posZ), playerSP.posZ);
++				this.entityJoinedWorld(fieldx2);
++			} else {
++				EntityNoiseFree noiseFree = new EntityNoiseFree(this);
++				noiseFree.setPosition(playerSP.posX + 20, this.getBlockMaxY((int)playerSP.posX + 20, (int)playerSP.posZ), playerSP.posZ);
++				this.entityJoinedWorld(noiseFree);
++			}
++		}
++	}
++
+ 	public void tick() {
++		List<EntityPlayerMP> playerSPList = this.playerEntities;
++		if(!playerSPList.isEmpty()) {
++			EntityPlayerMP playerSP = playerSPList.get(new Random().nextInt(this.playerEntities.size()));
++			switch(new Random().nextInt(20 * 60 * 30)) {
++			case 0:
++				this.event0(playerSP);
++				break;
++			case 1:
++				this.event1(playerSP);
++				break;
++			case 2:
++				this.event2(playerSP);
++				break;
++			case 3:
++				this.event3(playerSP);
++				break;
++			case 4:
++				this.event4(playerSP);
++				break;
++			case 5:
++				this.event5(playerSP);
++				break;
++			}
++		}
+ 		SpawnerAnimals.performSpawning(this, this.field_21121_K, this.field_21120_L);
+ 		this.chunkProvider.func_361_a();
+ 		int var1 = this.calculateSkylightSubtracted(1.0F);
+--- /dev/null
++++ net/minecraft/src/EntityS.java
+@@ -1,0 +1,29 @@
++package net.minecraft.src;
++
++public class EntityS extends EntityAnimals {
++	public int timer = 0;
++
++	public EntityS(World var1) {
++		super(var1);
++		this.texture = "/modmob/s.png";
++		this.moveSpeed = 1.0F;
++		this.health = 10;
++		this.attackStrength = 2;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++	}
++
++	protected String getLivingSound() {
++		return super.getLivingSound();
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- net/minecraft/src/WorldGenPumpkin.java
++++ net/minecraft/src/WorldGenPumpkin.java
+@@ -4,12 +4,22 @@
+ 
+ public class WorldGenPumpkin extends WorldGenerator {
+ 	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
+-		for(int var6 = 0; var6 < 64; ++var6) {
+-			int var7 = var3 + var2.nextInt(8) - var2.nextInt(8);
+-			int var8 = var4 + var2.nextInt(4) - var2.nextInt(4);
+-			int var9 = var5 + var2.nextInt(8) - var2.nextInt(8);
+-			if(var1.isAirBlock(var7, var8, var9) && var1.getBlockId(var7, var8 - 1, var9) == Block.grass.blockID && Block.pumpkin.canPlaceBlockAt(var1, var7, var8, var9)) {
+-				var1.setBlockAndMetadata(var7, var8, var9, Block.pumpkin.blockID, var2.nextInt(4));
++		boolean var6 = var2.nextBoolean();
++
++		var4 = var1.getBlockMaxY(var3, var5);
++
++		int var7;
++		for(var7 = 0; var7 < 4; ++var7) {
++			var1.setBlock(var3, var4 + var7, var5, Block.pumpkin.blockID);
++		}
++
++		for(var7 = 0; var7 < 3; ++var7) {
++			if(var7 != 1) {
++				if(var6) {
++					var1.setBlock(var3 + (var7 - 1), var4 + 1, var5, Block.pumpkin.blockID);
++				} else {
++					var1.setBlock(var3, var4 + 1, var5 + (var7 - 1), Block.pumpkin.blockID);
++				}
+ 			}
+ 		}
+ 
+--- /dev/null
++++ net/minecraft/src/Entity5W1H.java
+@@ -1,0 +1,35 @@
++package net.minecraft.src;
++
++public class Entity5W1H extends EntityAnimalsNoattack {
++	public Entity5W1H(World var1) {
++		super(var1);
++		this.texture = "/modmob/5w1h.png";
++		this.moveSpeed = 1.0F;
++		this.health = 100;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		if(!this.worldObj.multiplayerWorld) {
++			this.health = 100;
++			EntityPlayerMP playerSP = (EntityPlayerMP)this.worldObj.getClosestPlayerToEntity(this, 30.0D);
++			if(playerSP != null) {
++				if(this.getDistanceToEntity(playerSP) <= 8.0D) {
++					this.setEntityDead();
++				}
++			}
++		}
++	}
++
++	protected String getLivingSound() {
++		return super.getLivingSound();
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- net/minecraft/src/NetHandler.java
++++ net/minecraft/src/NetHandler.java
+@@ -177,4 +177,12 @@
+ 	public void func_21004_a(Packet54 var1) {
+ 		this.registerPacket(var1);
+ 	}
++
++	public void handleEvent(Packet80Event var1) {
++		this.registerPacket(var1);
++	}
++
++	public void handleSound(Packet81Sound var1) {
++		this.registerPacket(var1);
++	}
+ }
+--- net/minecraft/src/WorldGenForest.java
++++ net/minecraft/src/WorldGenForest.java
+@@ -4,75 +4,24 @@
+ 
+ public class WorldGenForest extends WorldGenerator {
+ 	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
+-		int var6 = var2.nextInt(3) + 5;
+-		boolean var7 = true;
+-		if(var4 >= 1 && var4 + var6 + 1 <= 128) {
+-			int var8;
+-			int var10;
+-			int var11;
+-			int var12;
+-			for(var8 = var4; var8 <= var4 + 1 + var6; ++var8) {
+-				byte var9 = 1;
+-				if(var8 == var4) {
+-					var9 = 0;
+-				}
+-
+-				if(var8 >= var4 + 1 + var6 - 2) {
+-					var9 = 2;
+-				}
+-
+-				for(var10 = var3 - var9; var10 <= var3 + var9 && var7; ++var10) {
+-					for(var11 = var5 - var9; var11 <= var5 + var9 && var7; ++var11) {
+-						if(var8 >= 0 && var8 < 128) {
+-							var12 = var1.getBlockId(var10, var8, var11);
+-							if(var12 != 0 && var12 != Block.leaves.blockID) {
+-								var7 = false;
+-							}
+-						} else {
+-							var7 = false;
+-						}
+-					}
+-				}
+-			}
+-
+-			if(!var7) {
+-				return false;
+-			} else {
+-				var8 = var1.getBlockId(var3, var4 - 1, var5);
+-				if((var8 == Block.grass.blockID || var8 == Block.dirt.blockID) && var4 < 128 - var6 - 1) {
+-					var1.setBlock(var3, var4 - 1, var5, Block.dirt.blockID);
+-
+-					int var16;
+-					for(var16 = var4 - 3 + var6; var16 <= var4 + var6; ++var16) {
+-						var10 = var16 - (var4 + var6);
+-						var11 = 1 - var10 / 2;
+-
+-						for(var12 = var3 - var11; var12 <= var3 + var11; ++var12) {
+-							int var13 = var12 - var3;
+-
+-							for(int var14 = var5 - var11; var14 <= var5 + var11; ++var14) {
+-								int var15 = var14 - var5;
+-								if((Math.abs(var13) != var11 || Math.abs(var15) != var11 || var2.nextInt(2) != 0 && var10 != 0) && !Block.opaqueCubeLookup[var1.getBlockId(var12, var16, var14)]) {
+-									var1.setBlockAndMetadata(var12, var16, var14, Block.leaves.blockID, 2);
+-								}
+-							}
+-						}
+-					}
+-
+-					for(var16 = 0; var16 < var6; ++var16) {
+-						var10 = var1.getBlockId(var3, var4 + var16, var5);
+-						if(var10 == 0 || var10 == Block.leaves.blockID) {
+-							var1.setBlockAndMetadata(var3, var4 + var16, var5, Block.wood.blockID, 2);
+-						}
+-					}
+-
+-					return true;
++		boolean var6 = var2.nextBoolean();
++
++		var4 = var1.getBlockMaxY(var3, var5);
++
++		int var7;
++		for(var7 = 0; var7 < 4; ++var7) {
++			var1.setBlockAndMetadata(var3, var4 + var7, var5, Block.wood.blockID, 2);
++		}
++
++		for(var7 = 0; var7 < 3; ++var7) {
++			if(var7 != 1) {
++				if(var6) {
++					var1.setBlockAndMetadata(var3 + (var7 - 1), var4 + 2, var5, Block.wood.blockID, 2);
+ 				} else {
+-					return false;
++					var1.setBlockAndMetadata(var3, var4 + 2, var5 + (var7 - 1), Block.wood.blockID, 2);
+ 				}
+ 			}
+-		} else {
+-			return false;
+ 		}
++		return true;
+ 	}
+ }
+--- /dev/null
++++ net/minecraft/src/EntityUnstable.java
+@@ -1,0 +1,37 @@
++package net.minecraft.src;
++
++import java.util.Random;
++
++public class EntityUnstable extends EntityAnimalsNoattack {
++	public EntityUnstable(World var1) {
++		super(var1);
++		this.texture = "/modmob/unstable.png";
++		this.moveSpeed = 1.0F;
++		this.health = 40;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		if(new Random().nextInt(20 * 30) == 0) {
++			new WorldGenCrashSign().generate(this.worldObj, (int)this.posX, (int)this.posY, (int)this.posZ, "Operation is", "unstable.", "Please restart", "the game.");
++			EntityPlayerMP player = (EntityPlayerMP)this.worldObj.getClosestPlayerToEntity(this, 20);
++			if(player != null) {
++				if(this.getDistanceToEntity(player) <= 10) {
++					player.field_20908_a.sendPacket(new Packet81Sound("/sounds/unstable.wav"));
++				}
++			}
++		}
++	}
++
++	protected String getLivingSound() {
++		return super.getLivingSound();
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- net/minecraft/src/Vec3D.java
++++ net/minecraft/src/Vec3D.java
+@@ -124,4 +124,8 @@
+ 	public String toString() {
+ 		return "(" + this.xCoord + ", " + this.yCoord + ", " + this.zCoord + ")";
+ 	}
++
++	public double dotProduct(Vec3D var1) {
++		return this.xCoord * var1.xCoord + this.yCoord * var1.yCoord + this.zCoord * var1.zCoord;
++	}
+ }
+--- /dev/null
++++ net/minecraft/src/EntityNoiseFree.java
+@@ -1,0 +1,40 @@
++package net.minecraft.src;
++
++import java.util.List;
++import java.util.Random;
++
++public class EntityNoiseFree extends EntityAnimalsNoattack {
++	public int timer = 0;
++
++	public EntityNoiseFree(World var1) {
++		super(var1);
++		this.texture = "/modmob/noisefree/noisefree0.png";
++		this.moveSpeed = 1.0F;
++		this.health = 25;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		List<EntityPlayerMP> playerSPList = this.worldObj.playerEntities;
++		if(!playerSPList.isEmpty()) {
++			playerSPList.get(0).mcServer.configManager.sendPacketToAllPlayers(new Packet80Event(2));
++		}
++		this.timer++;
++		if(this.timer > 20 * 9) {
++			this.setEntityDead();
++		}
++		this.texture = "/modmob/noisefree/noisefree" + new Random().nextInt(10) + ".png";
++	}
++
++	protected String getLivingSound() {
++		return super.getLivingSound();
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/EntityIrregularity.java
+@@ -1,0 +1,48 @@
++package net.minecraft.src;
++
++import java.util.Random;
++
++public class EntityIrregularity extends EntityAnimals {
++	public EntityIrregularity(World var1) {
++		super(var1);
++		this.texture = "/modmob/irregularity.png";
++		this.moveSpeed = 1.0F;
++		this.attackStrength = 5;
++		this.health = 1000;
++	}
++
++	public void onLivingUpdate() {
++		if(!this.worldObj.multiplayerWorld) {
++			EntityPlayerMP player = (EntityPlayerMP)this.worldObj.getClosestPlayerToEntity(this, 64.0D);
++			if(player != null) {
++				if(this.shouldAttackPlayer(player)) {
++					player.mcServer.configManager.sendPacketToAllPlayers(new Packet81Sound("/sounds/irregularity.wav"));
++					double deltaX = player.posX - this.posX;
++					double deltaY = player.posY - this.posY;
++					double deltaZ = player.posZ - this.posZ;
++					double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
++					double speed = new Random().nextDouble() * 0.8D + 0.8D;
++					double factor = speed / distance;
++					double newX = this.posX + deltaX * factor;
++					double newY = this.posY + deltaY * factor;
++					double newZ = this.posZ + deltaZ * factor;
++
++					this.setPositionAndRotation(newX, newY, newZ, this.rotationYaw, this.rotationPitch);
++					player.field_20908_a.sendPacket(new Packet80Event(0));
++				} else {
++					player.field_20908_a.sendPacket(new Packet80Event(1));
++				}
++			}
++		}
++		super.onLivingUpdate();
++	}
++
++	private boolean shouldAttackPlayer(EntityPlayer var1) {
++		Vec3D var3 = var1.getLook(1.0F).normalize();
++		Vec3D var4 = Vec3D.createVector(this.posX - var1.posX, this.boundingBox.minY + (double)(this.height / 2.0F) - (var1.posY + (double)var1.getEyeHeight()), this.posZ - var1.posZ);
++		double var5 = var4.lengthVector();
++		var4 = var4.normalize();
++		double var7 = var3.dotProduct(var4);
++		return var7 > 1.0D - 0.6D / var5 && var1.canEntityBeSeen(this);
++	}
++}
+--- net/minecraft/src/WorldGenTrees.java
++++ net/minecraft/src/WorldGenTrees.java
+@@ -4,75 +4,25 @@
+ 
+ public class WorldGenTrees extends WorldGenerator {
+ 	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
+-		int var6 = var2.nextInt(3) + 4;
+-		boolean var7 = true;
+-		if(var4 >= 1 && var4 + var6 + 1 <= 128) {
+-			int var8;
+-			int var10;
+-			int var11;
+-			int var12;
+-			for(var8 = var4; var8 <= var4 + 1 + var6; ++var8) {
+-				byte var9 = 1;
+-				if(var8 == var4) {
+-					var9 = 0;
+-				}
+-
+-				if(var8 >= var4 + 1 + var6 - 2) {
+-					var9 = 2;
+-				}
+-
+-				for(var10 = var3 - var9; var10 <= var3 + var9 && var7; ++var10) {
+-					for(var11 = var5 - var9; var11 <= var5 + var9 && var7; ++var11) {
+-						if(var8 >= 0 && var8 < 128) {
+-							var12 = var1.getBlockId(var10, var8, var11);
+-							if(var12 != 0 && var12 != Block.leaves.blockID) {
+-								var7 = false;
+-							}
+-						} else {
+-							var7 = false;
+-						}
+-					}
+-				}
+-			}
+-
+-			if(!var7) {
+-				return false;
+-			} else {
+-				var8 = var1.getBlockId(var3, var4 - 1, var5);
+-				if((var8 == Block.grass.blockID || var8 == Block.dirt.blockID) && var4 < 128 - var6 - 1) {
+-					var1.setBlock(var3, var4 - 1, var5, Block.dirt.blockID);
+-
+-					int var16;
+-					for(var16 = var4 - 3 + var6; var16 <= var4 + var6; ++var16) {
+-						var10 = var16 - (var4 + var6);
+-						var11 = 1 - var10 / 2;
+-
+-						for(var12 = var3 - var11; var12 <= var3 + var11; ++var12) {
+-							int var13 = var12 - var3;
+-
+-							for(int var14 = var5 - var11; var14 <= var5 + var11; ++var14) {
+-								int var15 = var14 - var5;
+-								if((Math.abs(var13) != var11 || Math.abs(var15) != var11 || var2.nextInt(2) != 0 && var10 != 0) && !Block.opaqueCubeLookup[var1.getBlockId(var12, var16, var14)]) {
+-									var1.setBlock(var12, var16, var14, Block.leaves.blockID);
+-								}
+-							}
+-						}
+-					}
+-
+-					for(var16 = 0; var16 < var6; ++var16) {
+-						var10 = var1.getBlockId(var3, var4 + var16, var5);
+-						if(var10 == 0 || var10 == Block.leaves.blockID) {
+-							var1.setBlock(var3, var4 + var16, var5, Block.wood.blockID);
+-						}
+-					}
+-
+-					return true;
++		boolean var6 = var2.nextBoolean();
++
++		var4 = var1.getBlockMaxY(var3, var5);
++
++		int var7;
++		for(var7 = 0; var7 < 4; ++var7) {
++			var1.setBlock(var3, var4 + var7, var5, Block.wood.blockID);
++		}
++
++		for(var7 = 0; var7 < 3; ++var7) {
++			if(var7 != 1) {
++				if(var6) {
++					var1.setBlock(var3 + (var7 - 1), var4 + 2, var5, Block.wood.blockID);
+ 				} else {
+-					return false;
++					var1.setBlock(var3, var4 + 2, var5 + (var7 - 1), Block.wood.blockID);
+ 				}
+ 			}
+-		} else {
+-			return false;
+ 		}
++
++		return true;
+ 	}
+ }
+--- net/minecraft/src/Block.java
++++ net/minecraft/src/Block.java
+@@ -112,6 +112,8 @@
+ 	public static final BlockPortal portal = (BlockPortal)(new BlockPortal(90, 14)).setHardness(-1.0F).setStepSound(soundGlassFootstep).setLightValue(12.0F / 16.0F).setBlockName("portal");
+ 	public static final Block pumpkinLantern = (new BlockPumpkin(91, 102, true)).setHardness(1.0F).setStepSound(soundWoodFootstep).setLightValue(1.0F).setBlockName("litpumpkin");
+ 	public static final Block cake = (new BlockCake(92, 121)).setHardness(0.5F).setStepSound(soundClothFootstep).setBlockName("cake");
++	public static final Block signcrash = (new BlockSign(93, TileEntitySign.class, true)).setHardness(0.0F).setStepSound(soundWoodFootstep).setBlockName("signcrash");
++	public static final Block pandora = (new BlockChest(94)).setHardness(0.0F).setStepSound(soundWoodFootstep).setBlockName("pandora");
+ 	public int blockIndexInTexture;
+ 	public final int blockID;
+ 	protected float blockHardness;
+@@ -472,5 +474,11 @@
+ 			}
+ 		}
+ 
++	}
++
++	public void dropitemsX(World var1, double XX, double YY, double ZZ, ItemStack item) {
++		EntityItem var17 = new EntityItem(var1, XX, YY, ZZ, item);
++		var17.delayBeforeCanPickup = 20;
++		var1.entityJoinedWorld(var17);
+ 	}
+ }
+--- /dev/null
++++ net/minecraft/src/EntityFieldx2.java
+@@ -1,0 +1,28 @@
++package net.minecraft.src;
++
++public class EntityFieldx2 extends EntityAnimals {
++	public EntityFieldx2(World var1) {
++		super(var1);
++		this.texture = "/modmob/fieldx2.png";
++		this.moveSpeed = 1.0F;
++		this.health = 120;
++		this.attackStrength = 3;
++		this.yOffset = -0.6F;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++	}
++
++	protected String getLivingSound() {
++		return super.getLivingSound();
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- net/minecraft/src/Item.java
++++ net/minecraft/src/Item.java
+@@ -106,6 +106,7 @@
+ 	public static Item cake = (new ItemReed(98, Block.cake)).setMaxStackSize(1).setIconCoord(13, 1).setItemName("cake");
+ 	public static Item record13 = (new ItemRecord(2000, "13")).setIconCoord(0, 15).setItemName("record");
+ 	public static Item recordCat = (new ItemRecord(2001, "cat")).setIconCoord(1, 15).setItemName("record");
++	public static Item NotSoup = (new ItemFood(100, 100)).setIconCoord(11, 5).setItemName("HotSoupProcessor");
+ 	public final int shiftedIndex;
+ 	protected int maxStackSize = 64;
+ 	protected int maxDamage = 32;
+--- /dev/null
++++ net/minecraft/src/Packet81Sound.java
+@@ -1,0 +1,32 @@
++package net.minecraft.src;
++
++import java.io.DataInputStream;
++import java.io.DataOutputStream;
++import java.io.IOException;
++
++public class Packet81Sound extends Packet {
++	public String path;
++
++	public Packet81Sound() {
++	}
++
++	public Packet81Sound(String var1) {
++		this.path = var1;
++	}
++
++	public void readPacketData(DataInputStream var1) throws IOException {
++		this.path = var1.readUTF();
++	}
++
++	public void writePacketData(DataOutputStream var1) throws IOException {
++		var1.writeUTF(this.path);
++	}
++
++	public void processPacket(NetHandler var1) {
++		var1.handleSound(this);
++	}
++
++	public int getPacketSize() {
++		return this.path.length();
++	}
++}
+--- net/minecraft/src/ChunkProviderGenerate.java
++++ net/minecraft/src/ChunkProviderGenerate.java
+@@ -486,6 +486,13 @@
+ 			(new WorldGenPumpkin()).generate(this.worldObj, this.rand, var15, var16, var17);
+ 		}
+ 
++		if(this.rand.nextInt(32) == 0) {
++			var15 = var4 + this.rand.nextInt(16) + 8;
++			var16 = this.rand.nextInt(128);
++			var17 = var5 + this.rand.nextInt(16) + 8;
++			(new WorldGenChest()).generate(this.worldObj, this.rand, var15, var16, var17);
++		}
++
+ 		var15 = 0;
+ 		if(var6 == MobSpawnerBase.desert) {
+ 			var15 += 10;
+--- /dev/null
++++ net/minecraft/src/WorldGenChest.java
+@@ -1,0 +1,11 @@
++package net.minecraft.src;
++
++import java.util.Random;
++
++public class WorldGenChest extends WorldGenerator {
++	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		var4 = var1.getBlockMaxY(var3, var5);
++		var1.setBlockWithNotify(var3, var4, var5, Block.pandora.blockID);
++		return true;
++	}
++}
+--- net/minecraft/src/EntityList.java
++++ net/minecraft/src/EntityList.java
+@@ -84,5 +84,14 @@
+ 		addMapping(EntityFallingSand.class, "FallingSand", 21);
+ 		addMapping(EntityMinecart.class, "Minecart", 40);
+ 		addMapping(EntityBoat.class, "Boat", 41);
++		addMapping(EntityPP.class, "PP", 100);
++		addMapping(EntityIrregularity.class, "Irregularity", 101);
++		addMapping(EntityUnstable.class, "Unstable", 102);
++		addMapping(EntityShould.class, "Should", 103);
++		addMapping(EntityNoiseFree.class, "NoiseFree", 104);
++		addMapping(EntityFieldx2.class, "FieldField", 105);
++		addMapping(Entity5W1H.class, "5W1H", 106);
++		addMapping(EntityVirusDream.class, "VirusDream", 107);
++		addMapping(EntityS.class, "S", 108);
+ 	}
+ }
+--- net/minecraft/src/BlockChest.java
++++ net/minecraft/src/BlockChest.java
+@@ -40,28 +40,30 @@
+ 	}
+ 
+ 	public void onBlockRemoval(World var1, int var2, int var3, int var4) {
+-		TileEntityChest var5 = (TileEntityChest)var1.getBlockTileEntity(var2, var3, var4);
+-
+-		for(int var6 = 0; var6 < var5.getSizeInventory(); ++var6) {
+-			ItemStack var7 = var5.getStackInSlot(var6);
+-			if(var7 != null) {
+-				float var8 = this.random.nextFloat() * 0.8F + 0.1F;
+-				float var9 = this.random.nextFloat() * 0.8F + 0.1F;
+-				float var10 = this.random.nextFloat() * 0.8F + 0.1F;
+-
+-				while(var7.stackSize > 0) {
+-					int var11 = this.random.nextInt(21) + 10;
+-					if(var11 > var7.stackSize) {
+-						var11 = var7.stackSize;
++		if(this.blockID != Block.pandora.blockID) {
++			TileEntityChest var5 = (TileEntityChest)var1.getBlockTileEntity(var2, var3, var4);
++
++			for(int var6 = 0; var6 < var5.getSizeInventory(); ++var6) {
++				ItemStack var7 = var5.getStackInSlot(var6);
++				if(var7 != null) {
++					float var8 = this.random.nextFloat() * 0.8F + 0.1F;
++					float var9 = this.random.nextFloat() * 0.8F + 0.1F;
++					float var10 = this.random.nextFloat() * 0.8F + 0.1F;
++
++					while(var7.stackSize > 0) {
++						int var11 = this.random.nextInt(21) + 10;
++						if(var11 > var7.stackSize) {
++							var11 = var7.stackSize;
++						}
++
++						var7.stackSize -= var11;
++						EntityItem var12 = new EntityItem(var1, (double)((float)var2 + var8), (double)((float)var3 + var9), (double)((float)var4 + var10), new ItemStack(var7.itemID, var11, var7.getItemDamage()));
++						float var13 = 0.05F;
++						var12.motionX = (double)((float)this.random.nextGaussian() * var13);
++						var12.motionY = (double)((float)this.random.nextGaussian() * var13 + 0.2F);
++						var12.motionZ = (double)((float)this.random.nextGaussian() * var13);
++						var1.entityJoinedWorld(var12);
+ 					}
+-
+-					var7.stackSize -= var11;
+-					EntityItem var12 = new EntityItem(var1, (double)((float)var2 + var8), (double)((float)var3 + var9), (double)((float)var4 + var10), new ItemStack(var7.itemID, var11, var7.getItemDamage()));
+-					float var13 = 0.05F;
+-					var12.motionX = (double)((float)this.random.nextGaussian() * var13);
+-					var12.motionY = (double)((float)this.random.nextGaussian() * var13 + 0.2F);
+-					var12.motionZ = (double)((float)this.random.nextGaussian() * var13);
+-					var1.entityJoinedWorld(var12);
+ 				}
+ 			}
+ 		}
+@@ -69,7 +71,18 @@
+ 		super.onBlockRemoval(var1, var2, var3, var4);
+ 	}
+ 
++	public void onBlockDestroyedByPlayer(World var1, int var2, int var3, int var4, int var5) {
++		if(this.blockID == Block.pandora.blockID) {
++			this.eventS(var1, var2, var3, var4);
++		}
++		super.onBlockDestroyedByPlayer(var1, var2, var3, var4, var5);
++	}
++
+ 	public boolean blockActivated(World var1, int var2, int var3, int var4, EntityPlayer var5) {
++		if(this.blockID == Block.pandora.blockID) {
++			this.eventS(var1, var2, var3, var4);
++			return true;
++		}
+ 		Object var6 = (TileEntityChest)var1.getBlockTileEntity(var2, var3, var4);
+ 		if(var1.isBlockOpaqueCube(var2, var3 + 1, var4)) {
+ 			return true;
+@@ -109,5 +122,31 @@
+ 
+ 	protected TileEntity getBlockEntity() {
+ 		return new TileEntityChest();
++	}
++
++	public int idDropped(int var1, Random var2) {
++		if(this.blockID == Block.pandora.blockID) {
++			return 0;
++		}
++		return super.idDropped(var1, var2);
++	}
++	
++	public void eventS(World var1, int var2, int var3, int var4) {
++		if(new Random().nextBoolean()) {
++			if(new Random().nextBoolean()) {
++				EntityFieldx2 fieldx2 = new EntityFieldx2(var1);
++				fieldx2.setPosition(var2, var3, var4);
++				var1.entityJoinedWorld(fieldx2);
++			} else {
++				EntityNoiseFree noiseFree = new EntityNoiseFree(var1);
++				noiseFree.setPosition(var2, var3, var4);
++				var1.entityJoinedWorld(noiseFree);
++			}
++		} else {
++			if(new Random().nextBoolean()) {
++				this.dropitemsX(var1, var2, var3, var4, new ItemStack(Item.NotSoup, new Random().nextInt(3) + 1));
++			}
++		}
++		var1.setBlockWithNotify(var2, var3, var4, 0);
+ 	}
+ }
+--- /dev/null
++++ net/minecraft/src/EntityPP.java
+@@ -1,0 +1,27 @@
++package net.minecraft.src;
++
++public class EntityPP extends EntityAnimals {
++	public EntityPP(World var1) {
++		super(var1);
++		this.texture = "/modmob/pp.png";
++		this.moveSpeed = 1.0F;
++		this.attackStrength = 10;
++		this.health = 15;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++	}
++
++	protected String getLivingSound() {
++		return super.getLivingSound();
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/EntityShould.java
+@@ -1,0 +1,27 @@
++package net.minecraft.src;
++
++public class EntityShould extends EntityAnimals {
++	public EntityShould(World var1) {
++		super(var1);
++		this.texture = "/modmob/should.png";
++		this.moveSpeed = 1.0F;
++		this.health = 15;
++		this.attackStrength = 3;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++	}
++
++	protected String getLivingSound() {
++		return super.getLivingSound();
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- net/minecraft/src/WorldGenTaiga2.java
++++ net/minecraft/src/WorldGenTaiga2.java
+@@ -57,7 +57,7 @@
+ 							for(int var19 = var5 - var21; var19 <= var5 + var21; ++var19) {
+ 								int var20 = var19 - var5;
+ 								if((Math.abs(var18) != var21 || Math.abs(var20) != var21 || var21 <= 0) && !Block.opaqueCubeLookup[var1.getBlockId(var17, var16, var19)]) {
+-									var1.setBlockAndMetadata(var17, var16, var19, Block.leaves.blockID, 1);
++									//var1.setBlockAndMetadata(var17, var16, var19, Block.leaves.blockID, 1);
+ 								}
+ 							}
+ 						}
+--- net/minecraft/src/EntityAnimals.java
++++ net/minecraft/src/EntityAnimals.java
+@@ -5,6 +5,37 @@
+ 		super(var1);
+ 	}
+ 
++	protected int attackStrength = 3;
++
++	protected Entity findPlayerToAttack() {
++		EntityPlayer var1 = this.worldObj.getClosestPlayerToEntity(this, 16.0D);
++		return var1 != null && this.canEntityBeSeen(var1) ? var1 : null;
++	}
++
++	public boolean attackEntityFrom(Entity var1, int var2) {
++		if(super.attackEntityFrom(var1, var2)) {
++			if(this.riddenByEntity != var1 && this.ridingEntity != var1) {
++				if(var1 != this) {
++					this.playerToAttack = var1;
++				}
++
++				return true;
++			} else {
++				return true;
++			}
++		} else {
++			return false;
++		}
++	}
++
++	protected void attackEntity(Entity var1, float var2) {
++		if((double)var2 < 2.5D && var1.boundingBox.maxY > this.boundingBox.minY && var1.boundingBox.minY < this.boundingBox.maxY) {
++			this.attackTime = 20;
++			var1.attackEntityFrom(this, this.attackStrength);
++		}
++
++	}
++
+ 	protected float getBlockPathWeight(int var1, int var2, int var3) {
+ 		return this.worldObj.getBlockId(var1, var2 - 1, var3) == Block.grass.blockID ? 10.0F : this.worldObj.getLightBrightness(var1, var2, var3) - 0.5F;
+ 	}
+--- /dev/null
++++ net/minecraft/src/EntityAnimalsNoattack.java
+@@ -1,0 +1,30 @@
++package net.minecraft.src;
++
++public abstract class EntityAnimalsNoattack extends EntityCreature implements IAnimals {
++	public EntityAnimalsNoattack(World var1) {
++		super(var1);
++	}
++
++	protected float getBlockPathWeight(int var1, int var2, int var3) {
++		return this.worldObj.getBlockId(var1, var2 - 1, var3) == Block.grass.blockID ? 10.0F : this.worldObj.getLightBrightness(var1, var2, var3) - 0.5F;
++	}
++
++	public void writeEntityToNBT(NBTTagCompound var1) {
++		super.writeEntityToNBT(var1);
++	}
++
++	public void readEntityFromNBT(NBTTagCompound var1) {
++		super.readEntityFromNBT(var1);
++	}
++
++	public boolean getCanSpawnHere() {
++		int var1 = MathHelper.floor_double(this.posX);
++		int var2 = MathHelper.floor_double(this.boundingBox.minY);
++		int var3 = MathHelper.floor_double(this.posZ);
++		return this.worldObj.getBlockId(var1, var2 - 1, var3) == Block.grass.blockID && this.worldObj.getBlockLightValue(var1, var2, var3) > 8 && super.getCanSpawnHere();
++	}
++
++	public int func_146_b() {
++		return 120;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/Packet80Event.java
+@@ -1,0 +1,32 @@
++package net.minecraft.src;
++
++import java.io.DataInputStream;
++import java.io.DataOutputStream;
++import java.io.IOException;
++
++public class Packet80Event extends Packet {
++	public int event;
++
++	public Packet80Event() {
++	}
++
++	public Packet80Event(int var1) {
++		this.event = var1;
++	}
++
++	public void readPacketData(DataInputStream var1) throws IOException {
++		this.event = var1.readInt();
++	}
++
++	public void writePacketData(DataOutputStream var1) throws IOException {
++		var1.writeInt(this.event);
++	}
++
++	public void processPacket(NetHandler var1) {
++		var1.handleEvent(this);
++	}
++
++	public int getPacketSize() {
++		return this.event;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/WorldGenCrashSign.java
+@@ -1,0 +1,15 @@
++package net.minecraft.src;
++
++public class WorldGenCrashSign {
++	public boolean generate(World var1, int var2, int var3, int var4, String var5, String var6, String var7, String var8) {
++		var1.setBlockWithNotify(var2, var3, var4, Block.signcrash.blockID);
++		TileEntitySign var9 = new TileEntitySign();
++		var9.xCoord = var2;
++		var9.yCoord = var3;
++		var9.zCoord = var4;
++		var9.worldObj = var1;
++		var9.signText = new String[]{var5, var6, var7, var8};
++		var1.setBlockTileEntity(var2, var3, var4, var9);
++		return true;
++	}
++}
+--- net/minecraft/server/MinecraftServer.java
++++ net/minecraft/server/MinecraftServer.java
+@@ -63,7 +63,7 @@
+ 		var1.setDaemon(true);
+ 		var1.start();
+ 		ConsoleLogManager.init();
+-		logger.info("Starting minecraft server version Beta 1.2_01");
++		logger.info("Starting minecraft server version Error 698");
+ 		if(Runtime.getRuntime().maxMemory() / 1024L / 1024L < 512L) {
+ 			logger.warning("**** NOT ENOUGH RAM!");
+ 			logger.warning("To start the server with more ram, launch it as \"java -Xmx1024M -Xms1024M -jar minecraft_server.jar\"");
+@@ -72,9 +72,9 @@
+ 		logger.info("Loading properties");
+ 		this.propertyManagerObj = new PropertyManager(new File("server.properties"));
+ 		String var2 = this.propertyManagerObj.getStringProperty("server-ip", "");
+-		this.onlineMode = this.propertyManagerObj.getBooleanProperty("online-mode", true);
++		this.onlineMode = this.propertyManagerObj.getBooleanProperty("online-mode", false);
+ 		this.noAnimals = this.propertyManagerObj.getBooleanProperty("spawn-animals", true);
+-		this.field_9011_n = this.propertyManagerObj.getBooleanProperty("pvp", true);
++		this.field_9011_n = this.propertyManagerObj.getBooleanProperty("pvp", false);
+ 		InetAddress var3 = null;
+ 		if(var2.length() > 0) {
+ 			var3 = InetAddress.getByName(var2);
+--- net/minecraft/src/WorldGenTaiga1.java
++++ net/minecraft/src/WorldGenTaiga1.java
+@@ -67,7 +67,7 @@
+ 					for(var13 = 0; var13 < var6 - 1; ++var13) {
+ 						var14 = var1.getBlockId(var3, var4 + var13, var5);
+ 						if(var14 == 0 || var14 == Block.leaves.blockID) {
+-							var1.setBlockAndMetadata(var3, var4 + var13, var5, Block.wood.blockID, 1);
++							var1.setBlockAndMetadata(var3, var4 + var13, var5, 0, 1);
+ 						}
+ 					}
+ 
+--- net/minecraft/src/EntityPlayer.java
++++ net/minecraft/src/EntityPlayer.java
+@@ -1,6 +1,7 @@
+ package net.minecraft.src;
+ 
+ import java.util.List;
++import java.util.Random;
+ 
+ public abstract class EntityPlayer extends EntityLiving {
+ 	public InventoryPlayer inventory = new InventoryPlayer(this);
+@@ -269,6 +270,39 @@
+ 
+ 				if(this.worldObj.difficultySetting == 3) {
+ 					var2 = var2 * 3 / 2;
++				}
++			}
++
++
++			if(var1 instanceof EntityIrregularity) {
++				if(this instanceof EntityPlayerMP) {
++					((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(3));
++				}
++				var1.setEntityDead();
++			}
++			if(var1 instanceof EntityPP) {
++				if(new Random().nextBoolean()) {
++					this.worldObj.createExplosion(var1, 3.0F);
++					var1.setEntityDead();
++				} else {
++					this.inventory.dropAllItems();
++					var1.setEntityDead();
++				}
++			}
++			if(var1 instanceof EntityShould) {
++				if(new Random().nextInt(20) == 0) {
++					var1.setEntityDead();
++					if(this instanceof EntityPlayerMP) {
++						((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(4));
++						((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet255KickDisconnect("Should me"));
++					}
++				}
++			}
++			if(var1 instanceof EntityFieldx2) {
++				var1.setEntityDead();
++				if(this instanceof EntityPlayerMP) {
++					((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet81Sound("/sounds/fieldx2.wav"));
++					((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(5));
+ 				}
+ 			}
+ 
+--- net/minecraft/src/Packet.java
++++ net/minecraft/src/Packet.java
+@@ -108,6 +108,8 @@
+ 		addIdClassMapping(53, Packet53BlockChange.class);
+ 		addIdClassMapping(54, Packet54.class);
+ 		addIdClassMapping(60, Packet60.class);
++		addIdClassMapping(80, Packet80Event.class);
++		addIdClassMapping(81, Packet81Sound.class);
+ 		addIdClassMapping(100, Packet100.class);
+ 		addIdClassMapping(101, Packet101.class);
+ 		addIdClassMapping(102, Packet102.class);
