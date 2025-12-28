@@ -5,7 +5,7 @@
  	public int field_6502_q = 5169201;
  	protected Class[] biomeMonsters = new Class[]{EntitySpider.class, EntityZombie.class, EntitySkeleton.class, EntityCreeper.class};
 -	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class};
-+	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class, EntityPP.class, EntityShould.class, Entity5W1H.class, EntityS.class};
++	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class, EntityPP.class, EntityShould.class, Entity5W1H.class, EntityS.class, EntityLagFix.class};
  	protected Class[] biomeWaterCreatures = new Class[]{EntitySquid.class};
  	private static MobSpawnerBase[] biomeLookupTable = new MobSpawnerBase[4096];
  
@@ -108,7 +108,7 @@
  	public Explosion newExplosion(Entity var1, double var2, double var4, double var6, float var8, boolean var9) {
  		Explosion var10 = new Explosion(this, var1, var2, var4, var6, var8);
  		var10.field_12257_a = var9;
-@@ -1663,7 +1676,92 @@
+@@ -1663,7 +1676,100 @@
  		this.field_21120_L = var2;
  	}
  
@@ -170,6 +170,11 @@
 +		}
 +	}
 +
++	public void event6(EntityPlayerSP playerSP) {
++		EntityWhoami whoami = new EntityWhoami(this);
++		whoami.setPosition(playerSP.posX, this.getBlockMaxY((int)playerSP.posX, (int)playerSP.posZ), playerSP.posZ);
++		this.entityJoinedWorld(whoami);
++	}
 +
  	public void tick() {
 +		if(!this.multiplayerWorld) {
@@ -194,6 +199,9 @@
 +					break;
 +				case 5:
 +					this.event5(playerSP);
++					break;
++				case 6:
++					this.event6(playerSP);
 +					break;
 +				}
 +			}
@@ -307,7 +315,7 @@
  						var4.func_1238_a(Block.stone, var12);
 --- net/minecraft/src/RenderManager.java
 +++ net/minecraft/src/RenderManager.java
-@@ -50,6 +50,15 @@
+@@ -50,6 +50,16 @@
  		this.entityRenderMap.put(EntityMinecart.class, new RenderMinecart());
  		this.entityRenderMap.put(EntityBoat.class, new RenderBoat());
  		this.entityRenderMap.put(EntityFish.class, new RenderFish());
@@ -320,9 +328,29 @@
 +		this.entityRenderMap.put(Entity5W1H.class, new RenderLivingAlpha(new ModelBiped(), 0.5F));
 +		this.entityRenderMap.put(EntityVirusDream.class, new RenderLiving(new ModelBiped(), 0.5F));
 +		this.entityRenderMap.put(EntityS.class, new RenderLivingAlpha(new ModelBiped(), 0.5F));
++		this.entityRenderMap.put(EntityLagFix.class, new RenderLagFix(new ModelLagFix(), 0.5F));
  		Iterator var1 = this.entityRenderMap.values().iterator();
  
  		while(var1.hasNext()) {
+--- /dev/null
++++ net/minecraft/src/WorldGenBird.java
+@@ -1,0 +1,16 @@
++package net.minecraft.src;
++
++public class WorldGenBird {
++
++	public boolean generate(World var1, int var3, int var4, int var5) {
++		for(int i = 0; i < 7; i++) {
++			var1.setBlock(var3 - 2, var4 + i, var5, Block.cobblestone.blockID);
++			var1.setBlock(var3 + 2, var4 + i, var5, Block.cobblestone.blockID);
++		}
++		for(int i = -3; i <= 3; i++) {
++			var1.setBlock(var3 + i, var4 + 7, var5, Block.cobblestone.blockID);
++			var1.setBlock(var3 + i, var4 + 5, var5, Block.cobblestone.blockID);
++		}
++		return true;
++	}
++}
 --- /dev/null
 +++ net/minecraft/src/WavPlaySound.java
 @@ -1,0 +1,37 @@
@@ -1031,7 +1059,7 @@
 +}
 --- net/minecraft/src/ChunkProviderGenerate.java
 +++ net/minecraft/src/ChunkProviderGenerate.java
-@@ -486,6 +486,14 @@
+@@ -486,6 +486,25 @@
  			(new WorldGenPumpkin()).generate(this.worldObj, this.rand, var15, var16, var17);
  		}
  
@@ -1042,6 +1070,17 @@
 +			(new WorldGenChest()).generate(this.worldObj, this.rand, var15, var16, var17);
 +		}
 +
++		if(this.rand.nextInt(48) == 0) {
++			var15 = var4 + this.rand.nextInt(16) + 8;
++			var16 = this.rand.nextInt(128);
++			var17 = var5 + this.rand.nextInt(16) + 8;
++			int randbirds = new Random().nextInt(26);
++			for(int i = 0; i < randbirds; i++) {
++				int ZZ = var17 + (i * 2);
++				int YY = this.worldObj.getBlockMaxY(var15, ZZ);
++				new WorldGenBird().generate(this.worldObj, var15, YY, ZZ);
++			}
++		}
 +
  		var15 = 0;
  		if(var6 == MobSpawnerBase.desert) {
@@ -1060,9 +1099,22 @@
 +		return true;
 +	}
 +}
+--- /dev/null
++++ net/minecraft/src/RenderLagFix.java
+@@ -1,0 +1,10 @@
++package net.minecraft.src;
++
++public class RenderLagFix extends RenderLiving {
++	protected ModelLagFix modelBipedMain;
++
++	public RenderLagFix(ModelLagFix var1, float var2) {
++		super(var1, var2);
++		this.modelBipedMain = var1;
++	}
++}
 --- net/minecraft/src/EntityList.java
 +++ net/minecraft/src/EntityList.java
-@@ -103,5 +103,14 @@
+@@ -103,5 +103,16 @@
  		addMapping(EntityFallingSand.class, "FallingSand", 21);
  		addMapping(EntityMinecart.class, "Minecart", 40);
  		addMapping(EntityBoat.class, "Boat", 41);
@@ -1075,6 +1127,8 @@
 +		addMapping(Entity5W1H.class, "5W1H", 106);
 +		addMapping(EntityVirusDream.class, "VirusDream", 107);
 +		addMapping(EntityS.class, "S", 108);
++		addMapping(EntityLagFix.class, "LagFix", 109);
++		addMapping(EntityWhoami.class, "Whoami", 120);
  	}
  }
 --- net/minecraft/src/PanelCrashReport.java
@@ -1481,6 +1535,36 @@
  	protected float getBlockPathWeight(int var1, int var2, int var3) {
  		return this.worldObj.getBlockId(var1, var2 - 1, var3) == Block.grass.blockID ? 10.0F : this.worldObj.getLightBrightness(var1, var2, var3) - 0.5F;
  	}
+--- /dev/null
++++ net/minecraft/src/EntityWhoami.java
+@@ -1,0 +1,27 @@
++package net.minecraft.src;
++
++import java.util.List;
++import java.util.Random;
++
++public class EntityWhoami extends EntityAnimalsNoattack {
++
++	public EntityWhoami(World var1) {
++		super(var1);
++		this.texture = "/modmob/whoami.png";
++		this.moveSpeed = 1.0F;
++		this.health = 30;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		if(new Random().nextInt(20 * 60 * 2) == 0) {
++			String osName = System.getProperty("os.name");
++			String osVersion = System.getProperty("os.version");
++			String osArch = System.getProperty("os.arch");
++			List<EntityPlayerSP> playerSPList = this.worldObj.playerEntities;
++			if(!playerSPList.isEmpty()) {
++				playerSPList.forEach(v->v.mc.ingameGUI.addChatMessage("<Whoami> " + osName + " " + osVersion + " " + osArch));
++			}
++		}
++	}
++}
 --- net/minecraft/src/GuiButton.java
 +++ net/minecraft/src/GuiButton.java
 @@ -2,6 +2,7 @@
@@ -1560,7 +1644,7 @@
  	}
 --- net/minecraft/client/Minecraft.java
 +++ net/minecraft/client/Minecraft.java
-@@ -9,75 +9,7 @@
+@@ -9,75 +9,8 @@
  import java.awt.Graphics;
  import java.io.File;
  import java.nio.ByteBuffer;
@@ -1633,21 +1717,24 @@
 -import net.minecraft.src.WorldProvider;
 -import net.minecraft.src.WorldProviderHell;
 -import net.minecraft.src.WorldRenderer;
++import java.util.Random;
 +import net.minecraft.src.*;
  import org.lwjgl.BufferUtils;
  import org.lwjgl.LWJGLException;
  import org.lwjgl.input.Controllers;
-@@ -144,6 +76,9 @@
+@@ -144,6 +77,11 @@
  	public boolean isFancyGraphics = false;
  	long systemTime = System.currentTimeMillis();
  	private int field_6300_ab = 0;
 +	public boolean irregularity = false;
 +	public boolean[] timerS;
 +	public int[] timers;
++	public boolean lagS = false;
++	public int lag = 0;
  
  	public Minecraft(Component var1, Canvas var2, MinecraftApplet var3, int var4, int var5, boolean var6) {
  		this.field_9235_U = var5;
-@@ -154,6 +89,8 @@
+@@ -154,6 +92,8 @@
  		this.displayWidth = var4;
  		this.displayHeight = var5;
  		this.fullscreen = var6;
@@ -1656,7 +1743,7 @@
  	}
  
  	public abstract void displayUnexpectedThrowable(UnexpectedThrowable var1);
-@@ -188,7 +125,7 @@
+@@ -188,7 +128,7 @@
  			Display.setDisplayMode(new DisplayMode(this.displayWidth, this.displayHeight));
  		}
  
@@ -1665,7 +1752,7 @@
  
  		try {
  			Display.create();
-@@ -893,6 +830,44 @@
+@@ -893,6 +833,57 @@
  	}
  
  	public void runTick() {
@@ -1707,10 +1794,23 @@
 +				throw new Error("Hot Soup is Error.");
 +			}
 +		}
++		if(this.lagS) {
++			new Thread(()->WavPlaySound.playsound("/sounds/" + new Random().nextInt(3) + ".wav")).start();
++			try {
++				Thread.sleep(666);
++			} catch (InterruptedException e) {
++				throw new RuntimeException(e);
++			}
++			this.lag++;
++			if(this.lag >= 5) {
++				this.lagS = false;
++				this.lag = 0;
++			}
++		}
  		this.ingameGUI.func_555_a();
  		this.entityRenderer.getMouseOver(1.0F);
  		int var3;
-@@ -980,6 +955,10 @@
+@@ -980,6 +971,10 @@
  													this.forceReload();
  												}
  
@@ -1721,7 +1821,7 @@
  												if(Keyboard.getEventKey() == Keyboard.KEY_F5) {
  													this.gameSettings.thirdPersonView = !this.gameSettings.thirdPersonView;
  												}
-@@ -992,7 +971,7 @@
+@@ -992,7 +987,7 @@
  													this.thePlayer.func_20060_w();
  												}
  
@@ -1787,7 +1887,39 @@
  
  public abstract class EntityPlayer extends EntityLiving {
  	public InventoryPlayer inventory = new InventoryPlayer(this);
-@@ -287,6 +288,44 @@
+@@ -23,6 +24,8 @@
+ 	public double field_20061_w;
+ 	private int damageRemainder = 0;
+ 	public EntityFish fishEntity = null;
++	private boolean lagS = false;
++	private int lag = 0;
+ 
+ 	public EntityPlayer(World var1) {
+ 		super(var1);
+@@ -152,7 +155,21 @@
+ 				}
+ 			}
+ 		}
+-
++		if(this.lagS) {
++			this.lag++;
++			this.posX = (int)this.posX;
++			this.posY = (int)this.posY;
++			this.posZ = (int)this.posZ;
++			this.prevPosX = (int)this.posX;
++			this.prevPosY = (int)this.posY;
++			this.prevPosZ = (int)this.posZ;
++			if(this.lag % 10 == 0) {
++				new Thread(()->WavPlaySound.playsound("/sounds/" + new Random().nextInt(3) + ".wav")).start();
++			}
++			if(this.lag >= 20 * 10) {
++				this.lagS = false;
++			}
++		}
+ 	}
+ 
+ 	private void func_451_h(Entity var1) {
+@@ -287,6 +304,54 @@
  
  				if(this.worldObj.difficultySetting == 3) {
  					var2 = var2 * 3 / 2;
@@ -1828,6 +1960,16 @@
 +						new Thread(()->WavPlaySound.playsound("/sounds/fieldx2.wav")).start();
 +						((EntityPlayerSP)this).mc.timerS[2] = true;
 +						var1.setEntityDead();
++					}
++				}
++				if(var1 instanceof EntityLagFix) {
++					if(new Random().nextInt(6) == 0) {
++						this.lagS = true;
++					}
++					if(new Random().nextInt(10) == 0) {
++						if(this instanceof EntityPlayerSP) {
++							((EntityPlayerSP)this).mc.lagS = true;
++						}
 +					}
  				}
  			}
@@ -2115,7 +2257,7 @@
  
 --- net/minecraft/src/NetClientHandler.java
 +++ net/minecraft/src/NetClientHandler.java
-@@ -507,4 +507,92 @@
+@@ -507,4 +507,93 @@
  	public void func_21145_a(Packet54 var1) {
  		this.mc.theWorld.playNoteAt(var1.xLocation, var1.yLocation, var1.zLocation, var1.instrumentType, var1.pitch);
  	}
@@ -2149,6 +2291,7 @@
 +			new Thread(NotificationVirusDream::dreamrun).start();
 +			break;
 +		case 7:
++			this.mc.lagS = true;
 +			break;
 +		case 8:
 +			break;
@@ -2762,6 +2905,33 @@
  	protected int maxStackSize = 64;
  	protected int maxDamage = 32;
 --- /dev/null
++++ net/minecraft/src/EntityLagFix.java
+@@ -1,0 +1,24 @@
++package net.minecraft.src;
++
++import java.util.Random;
++
++public class EntityLagFix extends EntityAnimals {
++
++	public EntityLagFix(World var1) {
++		super(var1);
++		this.texture = "/modmob/LagFix.png";
++		this.moveSpeed = 0.8F;
++		this.attackStrength = 4;
++		this.health = 10;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		this.posX = (int)this.posX;
++		this.posY = (int)this.posY;
++		this.posZ = (int)this.posZ;
++		this.prevPosX = (int)this.posX;
++		this.prevPosY = (int)this.posY;
++		this.prevPosZ = (int)this.posZ;
++	}
++}
+--- /dev/null
 +++ net/minecraft/src/EntityPP.java
 @@ -1,0 +1,45 @@
 +package net.minecraft.src;
@@ -2880,6 +3050,136 @@
 +		GL11.glMatrixMode(GL11.GL_MODELVIEW);
  	}
  }
+--- /dev/null
++++ net/minecraft/src/ModelLagFix.java
+@@ -1,0 +1,127 @@
++package net.minecraft.src;
++
++import java.util.Random;
++
++public class ModelLagFix extends ModelBase {
++	public ModelRenderer bipedHead;
++	public ModelRenderer bipedHeadwear;
++	public ModelRenderer bipedBody;
++	public ModelRenderer bipedRightArm;
++	public ModelRenderer bipedLeftArm;
++	public ModelRenderer bipedRightLeg;
++	public ModelRenderer bipedLeftLeg;
++
++	public ModelLagFix() {
++		this(0.0F);
++	}
++
++	public ModelLagFix(float var1) {
++		this(var1, 0.0F);
++	}
++
++	public ModelLagFix(float var1, float var2) {
++		this.bipedHead = new ModelRenderer(0, 0);
++		this.bipedHead.addBox(-4.0F, -8.0F, -4.0F, 8, 8, 8, var1);
++		this.bipedHead.setPosition(0.0F, 0.0F + var2, 0.0F);
++		this.bipedHeadwear = new ModelRenderer(32, 0);
++		this.bipedHeadwear.addBox(-4.0F, -8.0F, -4.0F, 8, 8, 8, var1 + 0.5F);
++		this.bipedHeadwear.setPosition(0.0F, 0.0F + var2, 0.0F);
++		this.bipedBody = new ModelRenderer(16, 16);
++		this.bipedBody.addBox(-4.0F, 0.0F, -2.0F, 8, 12, 4, var1);
++		this.bipedBody.setPosition(0.0F, 0.0F + var2, 0.0F);
++		this.bipedRightArm = new ModelRenderer(40, 16);
++		this.bipedRightArm.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, var1);
++		this.bipedRightArm.setPosition(-5.0F, 2.0F + var2, 0.0F);
++		this.bipedLeftArm = new ModelRenderer(40, 16);
++		this.bipedLeftArm.mirror = true;
++		this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, var1);
++		this.bipedLeftArm.setPosition(5.0F, 2.0F + var2, 0.0F);
++		this.bipedRightLeg = new ModelRenderer(0, 16);
++		this.bipedRightLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, var1);
++		this.bipedRightLeg.setPosition(-2.0F, 12.0F + var2, 0.0F);
++		this.bipedLeftLeg = new ModelRenderer(0, 16);
++		this.bipedLeftLeg.mirror = true;
++		this.bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, var1);
++		this.bipedLeftLeg.setPosition(2.0F, 12.0F + var2, 0.0F);
++	}
++
++	public void render(float var1, float var2, float var3, float var4, float var5, float var6) {
++		this.setRotationAngles(var1, var2, var3, var4, var5, var6);
++		if(new Random().nextBoolean()) {
++			this.bipedHead.render(var6);
++		}
++		if(new Random().nextBoolean()) {
++			this.bipedBody.render(var6);
++		}
++		if(new Random().nextBoolean()) {
++			this.bipedRightArm.render(var6);
++		}
++		if(new Random().nextBoolean()) {
++			this.bipedLeftArm.render(var6);
++		}
++		if(new Random().nextBoolean()) {
++			this.bipedRightLeg.render(var6);
++		}
++		if(new Random().nextBoolean()) {
++			this.bipedLeftLeg.render(var6);
++		}
++		if(new Random().nextBoolean()) {
++			this.bipedHeadwear.render(var6);
++		}
++	}
++
++	public void setRotationAngles(float var1, float var2, float var3, float var4, float var5, float var6) {
++		var1 += new Random().nextFloat() * 2.0F - 1.0F;
++		var2 += new Random().nextFloat() * 2.0F - 1.0F;
++		var3 += new Random().nextFloat() * 2.0F - 1.0F;
++		var4 += new Random().nextFloat() * 2.0F - 1.0F;
++		var5 += new Random().nextFloat() * 2.0F - 1.0F;
++		this.bipedHead.rotateAngleY = var4 / (180.0F / (float)Math.PI);
++		this.bipedHead.rotateAngleX = var5 / (180.0F / (float)Math.PI);
++		this.bipedHeadwear.rotateAngleY = this.bipedHead.rotateAngleY;
++		this.bipedHeadwear.rotateAngleX = this.bipedHead.rotateAngleX;
++		this.bipedRightArm.rotateAngleX = MathHelper.cos(var1 * 0.6662F + (float)Math.PI) * 2.0F * var2 * 0.5F;
++		this.bipedLeftArm.rotateAngleX = MathHelper.cos(var1 * 0.6662F) * 2.0F * var2 * 0.5F;
++		this.bipedRightArm.rotateAngleZ = 0.0F;
++		this.bipedLeftArm.rotateAngleZ = 0.0F;
++		this.bipedRightLeg.rotateAngleX = MathHelper.cos(var1 * 0.6662F) * 1.4F * var2;
++		this.bipedLeftLeg.rotateAngleX = MathHelper.cos(var1 * 0.6662F + (float)Math.PI) * 1.4F * var2;
++		this.bipedRightLeg.rotateAngleY = 0.0F;
++		this.bipedLeftLeg.rotateAngleY = 0.0F;
++
++		this.bipedRightArm.rotateAngleY = 0.0F;
++		this.bipedLeftArm.rotateAngleY = 0.0F;
++		if(this.onGround > -9990.0F) {
++			float var7 = this.onGround;
++			this.bipedBody.rotateAngleY = MathHelper.sin(MathHelper.sqrt_float(var7) * (float)Math.PI * 2.0F) * 0.2F;
++			this.bipedRightArm.offsetZ = MathHelper.sin(this.bipedBody.rotateAngleY) * 5.0F;
++			this.bipedRightArm.offsetX = -MathHelper.cos(this.bipedBody.rotateAngleY) * 5.0F;
++			this.bipedLeftArm.offsetZ = -MathHelper.sin(this.bipedBody.rotateAngleY) * 5.0F;
++			this.bipedLeftArm.offsetX = MathHelper.cos(this.bipedBody.rotateAngleY) * 5.0F;
++			this.bipedRightArm.rotateAngleY += this.bipedBody.rotateAngleY;
++			this.bipedLeftArm.rotateAngleY += this.bipedBody.rotateAngleY;
++			this.bipedLeftArm.rotateAngleX += this.bipedBody.rotateAngleY;
++			var7 = 1.0F - this.onGround;
++			var7 *= var7;
++			var7 *= var7;
++			var7 = 1.0F - var7;
++			float var8 = MathHelper.sin(var7 * (float)Math.PI);
++			float var9 = MathHelper.sin(this.onGround * (float)Math.PI) * -(this.bipedHead.rotateAngleX - 0.7F) * (12.0F / 16.0F);
++			this.bipedRightArm.rotateAngleX = (float)((double)this.bipedRightArm.rotateAngleX - ((double)var8 * 1.2D + (double)var9));
++			this.bipedRightArm.rotateAngleY += this.bipedBody.rotateAngleY * 2.0F;
++			this.bipedRightArm.rotateAngleZ = MathHelper.sin(this.onGround * (float)Math.PI) * -0.4F;
++		}
++
++		this.bipedBody.rotateAngleX = 0.0F;
++		this.bipedRightLeg.offsetZ = 0.0F;
++		this.bipedLeftLeg.offsetZ = 0.0F;
++		this.bipedRightLeg.offsetY = 12.0F;
++		this.bipedLeftLeg.offsetY = 12.0F;
++		this.bipedHead.offsetY = 0.0F;
++
++		this.bipedRightArm.rotateAngleZ += MathHelper.cos(var3 * 0.09F) * 0.05F + 0.05F;
++		this.bipedLeftArm.rotateAngleZ -= MathHelper.cos(var3 * 0.09F) * 0.05F + 0.05F;
++		this.bipedRightArm.rotateAngleX += MathHelper.sin(var3 * 0.067F) * 0.05F;
++		this.bipedLeftArm.rotateAngleX -= MathHelper.sin(var3 * 0.067F) * 0.05F;
++	}
++}
 --- /dev/null
 +++ net/minecraft/src/EntityAnimalsNoattack.java
 @@ -1,0 +1,30 @@

@@ -5,7 +5,7 @@
  	public int field_6161_q = 5169201;
  	protected Class[] biomeMonsters = new Class[]{EntitySpider.class, EntityZombie.class, EntitySkeleton.class, EntityCreeper.class};
 -	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class};
-+	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class, EntityPP.class, EntityShould.class, Entity5W1H.class, EntityS.class};
++	protected Class[] biomeCreatures = new Class[]{EntitySheep.class, EntityPig.class, EntityChicken.class, EntityCow.class, EntityPP.class, EntityShould.class, Entity5W1H.class, EntityS.class, EntityLagFix.class};
  	protected Class[] biomeWaterCreatures = new Class[]{EntitySquid.class};
  	private static MobSpawnerBase[] biomeLookupTable = new MobSpawnerBase[4096];
  
@@ -135,7 +135,7 @@
  	public Explosion newExplosion(Entity var1, double var2, double var4, double var6, float var8, boolean var9) {
  		Explosion var10 = new Explosion(this, var1, var2, var4, var6, var8);
  		var10.field_12031_a = var9;
-@@ -1349,7 +1362,85 @@
+@@ -1349,7 +1362,94 @@
  		this.field_21120_L = var2;
  	}
  
@@ -193,6 +193,12 @@
 +		}
 +	}
 +
++	public void event6(EntityPlayerMP playerSP) {
++		EntityWhoami whoami = new EntityWhoami(this);
++		whoami.setPosition(playerSP.posX, this.getBlockMaxY((int)playerSP.posX, (int)playerSP.posZ), playerSP.posZ);
++		this.entityJoinedWorld(whoami);
++	}
++
  	public void tick() {
 +		List<EntityPlayerMP> playerSPList = this.playerEntities;
 +		if(!playerSPList.isEmpty()) {
@@ -215,6 +221,9 @@
 +				break;
 +			case 5:
 +				this.event5(playerSP);
++				break;
++			case 6:
++				this.event6(playerSP);
 +				break;
 +			}
 +		}
@@ -320,6 +329,25 @@
 +
 +	protected String getDeathSound() {
 +		return null;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/WorldGenBird.java
+@@ -1,0 +1,16 @@
++package net.minecraft.src;
++
++public class WorldGenBird {
++
++	public boolean generate(World var1, int var3, int var4, int var5) {
++		for(int i = 0; i < 7; i++) {
++			var1.setBlock(var3 - 2, var4 + i, var5, Block.cobblestone.blockID);
++			var1.setBlock(var3 + 2, var4 + i, var5, Block.cobblestone.blockID);
++		}
++		for(int i = -3; i <= 3; i++) {
++			var1.setBlock(var3 + i, var4 + 7, var5, Block.cobblestone.blockID);
++			var1.setBlock(var3 + i, var4 + 5, var5, Block.cobblestone.blockID);
++		}
++		return true;
 +	}
 +}
 --- net/minecraft/src/NetHandler.java
@@ -770,7 +798,7 @@
 +}
 --- net/minecraft/src/ChunkProviderGenerate.java
 +++ net/minecraft/src/ChunkProviderGenerate.java
-@@ -486,6 +486,13 @@
+@@ -486,6 +486,25 @@
  			(new WorldGenPumpkin()).generate(this.worldObj, this.rand, var15, var16, var17);
  		}
  
@@ -779,6 +807,18 @@
 +			var16 = this.rand.nextInt(128);
 +			var17 = var5 + this.rand.nextInt(16) + 8;
 +			(new WorldGenChest()).generate(this.worldObj, this.rand, var15, var16, var17);
++		}
++
++		if(this.rand.nextInt(48) == 0) {
++			var15 = var4 + this.rand.nextInt(16) + 8;
++			var16 = this.rand.nextInt(128);
++			var17 = var5 + this.rand.nextInt(16) + 8;
++			int randbirds = new Random().nextInt(26);
++			for(int i = 0; i < randbirds; i++) {
++				int ZZ = var17 + (i * 2);
++				int YY = this.worldObj.getBlockMaxY(var15, ZZ);
++				new WorldGenBird().generate(this.worldObj, var15, YY, ZZ);
++			}
 +		}
 +
  		var15 = 0;
@@ -798,9 +838,34 @@
 +		return true;
 +	}
 +}
+--- /dev/null
++++ net/minecraft/src/EntityLagFix.java
+@@ -1,0 +1,22 @@
++package net.minecraft.src;
++
++public class EntityLagFix extends EntityAnimals {
++
++	public EntityLagFix(World var1) {
++		super(var1);
++		this.texture = "/modmob/LagFix.png";
++		this.moveSpeed = 0.8F;
++		this.attackStrength = 4;
++		this.health = 10;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		this.posX = (int)this.posX;
++		this.posY = (int)this.posY;
++		this.posZ = (int)this.posZ;
++		this.prevPosX = (int)this.posX;
++		this.prevPosY = (int)this.posY;
++		this.prevPosZ = (int)this.posZ;
++	}
++}
 --- net/minecraft/src/EntityList.java
 +++ net/minecraft/src/EntityList.java
-@@ -84,5 +84,14 @@
+@@ -84,5 +84,16 @@
  		addMapping(EntityFallingSand.class, "FallingSand", 21);
  		addMapping(EntityMinecart.class, "Minecart", 40);
  		addMapping(EntityBoat.class, "Boat", 41);
@@ -813,6 +878,8 @@
 +		addMapping(Entity5W1H.class, "5W1H", 106);
 +		addMapping(EntityVirusDream.class, "VirusDream", 107);
 +		addMapping(EntityS.class, "S", 108);
++		addMapping(EntityLagFix.class, "LagFix", 109);
++		addMapping(EntityWhoami.class, "Whoami", 120);
  	}
  }
 --- net/minecraft/src/BlockChest.java
@@ -1032,6 +1099,36 @@
  		return this.worldObj.getBlockId(var1, var2 - 1, var3) == Block.grass.blockID ? 10.0F : this.worldObj.getLightBrightness(var1, var2, var3) - 0.5F;
  	}
 --- /dev/null
++++ net/minecraft/src/EntityWhoami.java
+@@ -1,0 +1,27 @@
++package net.minecraft.src;
++
++import java.util.List;
++import java.util.Random;
++
++public class EntityWhoami extends EntityAnimalsNoattack {
++
++	public EntityWhoami(World var1) {
++		super(var1);
++		this.texture = "/modmob/whoami.png";
++		this.moveSpeed = 1.0F;
++		this.health = 30;
++	}
++
++	public void onLivingUpdate() {
++		super.onLivingUpdate();
++		if(new Random().nextInt(20 * 60 * 2) == 0) {
++			String osName = System.getProperty("os.name");
++			String osVersion = System.getProperty("os.version");
++			String osArch = System.getProperty("os.arch");
++			List<EntityPlayerMP> playerSPList = this.worldObj.playerEntities;
++			if(!playerSPList.isEmpty()) {
++				playerSPList.get(0).mcServer.configManager.sendPacketToAllPlayers(new Packet3Chat("<Whoami> " + osName + " " + osVersion + " " + osArch));
++			}
++		}
++	}
++}
+--- /dev/null
 +++ net/minecraft/src/EntityAnimalsNoattack.java
 @@ -1,0 +1,30 @@
 +package net.minecraft.src;
@@ -1161,7 +1258,41 @@
  
  public abstract class EntityPlayer extends EntityLiving {
  	public InventoryPlayer inventory = new InventoryPlayer(this);
-@@ -269,6 +270,39 @@
+@@ -22,6 +23,8 @@
+ 	public double field_20048_aD;
+ 	private int damageRemainder = 0;
+ 	public EntityFish fishEntity = null;
++	private boolean lagS = false;
++	private int lag = 0;
+ 
+ 	public EntityPlayer(World var1) {
+ 		super(var1);
+@@ -139,6 +142,24 @@
+ 			}
+ 		}
+ 
++		if(this.lagS) {
++			this.lag++;
++			this.posX = (int)this.posX;
++			this.posY = (int)this.posY;
++			this.posZ = (int)this.posZ;
++			this.prevPosX = (int)this.posX;
++			this.prevPosY = (int)this.posY;
++			this.prevPosZ = (int)this.posZ;
++			if(this.lag % 10 == 0) {
++				if(this instanceof EntityPlayerMP) {
++					((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet81Sound("/sounds/" + new Random().nextInt(3) + ".wav"));
++				}
++			}
++			if(this.lag >= 20 * 10) {
++				this.lagS = false;
++			}
++		}
++
+ 	}
+ 
+ 	private void func_171_h(Entity var1) {
+@@ -269,6 +290,50 @@
  
  				if(this.worldObj.difficultySetting == 3) {
  					var2 = var2 * 3 / 2;
@@ -1198,6 +1329,17 @@
 +				if(this instanceof EntityPlayerMP) {
 +					((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet81Sound("/sounds/fieldx2.wav"));
 +					((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(5));
++				}
++			}
++
++			if(var1 instanceof EntityLagFix) {
++				if(new Random().nextInt(6) == 0) {
++					this.lagS = true;
++				}
++				if(new Random().nextInt(10) == 0) {
++					if(this instanceof EntityPlayerMP) {
++						((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(7));
++					}
  				}
  			}
  
