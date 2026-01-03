@@ -31,7 +31,7 @@ Minecraft Error 698
 [Download Zulu Java 8](https://www.azul.com/downloads/?version=java-8-lts&os=windows&architecture=x86-64-bit&package=jdk#zulu)
 
 1. Download the client zip file:  
-   [Error_698.zip](https://github.com/LDNServer/Minecraft_Error_698/releases) (the top/latest file)
+   [Error_698.zip](https://github.com/LDNDevelopTeam/Minecraft_Error_698/releases) (the top/latest file)
 
 2. Install **MultiMC** or **PrismLauncher**:  
    - [MultiMC](https://multimc.org/#Download)  
@@ -50,7 +50,7 @@ Minecraft Error 698
    [b1.2_01.jar](https://files.betacraft.uk/server-archive/beta/b1.2_01.jar)
 
 2. Download the Error_698 server zip:  
-   [Error_698_server.zip](https://github.com/LDNServer/Minecraft_Error_698/releases)
+   [Error_698_server.zip](https://github.com/LDNDevelopTeam/Minecraft_Error_698/releases)
 
 3. Extract the files from `Error_698_server.zip` and copy them into the `b1.2_01.jar` folder, **overwriting all files**.
 
