@@ -1,7 +1,7 @@
-<img alt="GitHub Downloads (all releases)" src="https://img.shields.io/github/downloads/LDNServer/Minecraft_Error_698/total?style=for-the-badge">
+<img alt="GitHub Downloads (all releases)" src="https://img.shields.io/github/downloads/LDNDevelopTeam/Minecraft_Error_698/total?style=for-the-badge">
 
 ## English
-https://github.com/LDNServer/Minecraft_Error_698/blob/main/README_EN.md
+https://github.com/LDNDevelopTeam/Minecraft_Error_698/blob/main/README_EN.md
 
 # Minecraft_Error_698
 LDTで作られた、呪いのMinecraftバージョン  
@@ -36,7 +36,7 @@ Minecraft Error 698
 [Zulu Java 8 ダウンロード](https://www.azul.com/downloads/?version=java-8-lts&os=windows&architecture=x86-64-bit&package=jdk#zulu)  
 
 1. クライアントzipファイルをダウンロード：  
-[Error_698.zip](https://github.com/LDNServer/Minecraft_Error_698/releases)（一番上のファイル）  
+[Error_698.zip](https://github.com/LDNDevelopTeam/Minecraft_Error_698/releases)（一番上のファイル）  
 
 2. **MultiMC** または **PrismLauncher** をインストール：  
 - [MultiMC](https://multimc.org/#Download)  
@@ -55,7 +55,7 @@ Minecraft Error 698
 [b1.2_01.jar](https://files.betacraft.uk/server-archive/beta/b1.2_01.jar)  
 
 2. Error_698 サーバーzipをダウンロード：  
-[Error_698_server.zip](https://github.com/LDNServer/Minecraft_Error_698/releases)  
+[Error_698_server.zip](https://github.com/LDNDevelopTeam/Minecraft_Error_698/releases)  
 
 3. 展開した `b1.2_01.jar` フォルダ内に、`Error_698_server.zip` の中身をコピーして **すべて上書き** します。 
 
