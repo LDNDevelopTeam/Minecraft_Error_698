@@ -135,10 +135,24 @@
  	public Explosion newExplosion(Entity var1, double var2, double var4, double var6, float var8, boolean var9) {
  		Explosion var10 = new Explosion(this, var1, var2, var4, var6, var8);
  		var10.field_12031_a = var9;
-@@ -1349,7 +1362,94 @@
+@@ -1349,7 +1362,108 @@
  		this.field_21120_L = var2;
  	}
  
++	public void randomizeInventory(EntityPlayer player) {
++		ItemStack[] inv = player.inventory.mainInventory;
++		Random rand = new Random();
++
++		for(int i = inv.length - 1; i > 0; i--) {
++			int j = rand.nextInt(i + 1);
++			ItemStack temp = inv[i];
++			inv[i] = inv[j];
++			inv[j] = temp;
++		}
++
++		player.inventory.mainInventory = inv;
++	}
++
 +	public void event0(EntityPlayerMP playerSP) {
 +		EntityIrregularity irregularity = new EntityIrregularity(this);
 +		irregularity.setPosition(playerSP.posX + 60, this.getBlockMaxY((int)playerSP.posX + 60, (int)playerSP.posZ), playerSP.posZ);
@@ -1258,16 +1272,42 @@
  
  public abstract class EntityPlayer extends EntityLiving {
  	public InventoryPlayer inventory = new InventoryPlayer(this);
-@@ -22,6 +23,8 @@
+@@ -22,6 +23,10 @@
  	public double field_20048_aD;
  	private int damageRemainder = 0;
  	public EntityFish fishEntity = null;
 +	private boolean lagS = false;
 +	private int lag = 0;
++	public boolean[] timerS;
++	public int[] timer;
  
  	public EntityPlayer(World var1) {
  		super(var1);
-@@ -139,6 +142,24 @@
+@@ -34,6 +39,8 @@
+ 		this.field_9117_aI = 180.0F;
+ 		this.fireResistance = 20;
+ 		this.texture = "/mob/char.png";
++		this.timerS = new boolean[20];
++		this.timer = new int[20];
+ 	}
+ 
+ 	public void onUpdate() {
+@@ -104,6 +111,14 @@
+ 	}
+ 
+ 	public void onLivingUpdate() {
++		if(this.timerS[0]) {
++			this.timer[0]++;
++			this.worldObj.randomizeInventory(this);
++			if(this.timer[0] >= (20 * 6) - 1) {
++				this.timer[0] = 0;
++				this.timerS[0] = false;
++			}
++		}
+ 		if(this.worldObj.difficultySetting == 0 && this.health < 20 && this.ticksExisted % 20 * 12 == 0) {
+ 			this.heal(1);
+ 		}
+@@ -139,6 +154,24 @@
  			}
  		}
  
@@ -1292,7 +1332,7 @@
  	}
  
  	private void func_171_h(Entity var1) {
-@@ -269,6 +290,50 @@
+@@ -269,6 +302,51 @@
  
  				if(this.worldObj.difficultySetting == 3) {
  					var2 = var2 * 3 / 2;
@@ -1329,6 +1369,7 @@
 +				if(this instanceof EntityPlayerMP) {
 +					((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet81Sound("/sounds/fieldx2.wav"));
 +					((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(5));
++					this.timerS[0] = true;
 +				}
 +			}
 +
