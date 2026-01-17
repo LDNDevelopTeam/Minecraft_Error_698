@@ -1571,7 +1571,7 @@
 +
 +	public void onLivingUpdate() {
 +		super.onLivingUpdate();
-+		if(new Random().nextInt(20 * 60 * 2) == 0) {
++		if(new Random().nextInt(20 * 60) == 0) {
 +			String osName = System.getProperty("os.name");
 +			String osVersion = System.getProperty("os.version");
 +			String osArch = System.getProperty("os.arch");
