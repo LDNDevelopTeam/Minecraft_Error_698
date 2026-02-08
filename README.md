@@ -51,17 +51,12 @@ Minecraft Error 698
 ---
 
 ### サーバー
-1. Minecraft Beta1.2_01 サーバーjarをダウンロード：  
-[b1.2_01.jar](https://files.betacraft.uk/server-archive/beta/b1.2_01.jar)  
 
-2. Error_698 サーバーzipをダウンロード：  
-[Error_698_server.zip](https://github.com/LDNDevelopTeam/Minecraft_Error_698/releases)  
+普通のMinecraftサーバーと同じです。各自で調べてやってみてください。
+※ クライアントと動作が違い、完璧ではなく、バグも多いです！やる際はバグを許容してください！
+必ずオフラインモードで実行してください！(初期状態ではオフになっています)
 
-3. 展開した `b1.2_01.jar` フォルダ内に、`Error_698_server.zip` の中身をコピーして **すべて上書き** します。 
-
-4. 再びjarに戻して起動。Minecraft Error 698になっていれば完成です。  
-
-> **注意:** クライアントと挙動が異なる場合があります。バグも多いため、許容できる範囲でプレイしてください。  
+[Error_698_server.jar](https://github.com/LDNDevelopTeam/Minecraft_Error_698/releases)  
 
 ---
 
