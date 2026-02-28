@@ -108,10 +108,12 @@
  	public Explosion newExplosion(Entity var1, double var2, double var4, double var6, float var8, boolean var9) {
  		Explosion var10 = new Explosion(this, var1, var2, var4, var6, var8);
  		var10.field_12257_a = var9;
-@@ -1663,7 +1676,114 @@
+@@ -1661,6 +1674,20 @@
+ 	public void func_21114_a(boolean var1, boolean var2) {
+ 		this.field_21121_K = var1;
  		this.field_21120_L = var2;
- 	}
- 
++	}
++
 +	public void randomizeInventory(EntityPlayer player) {
 +		ItemStack[] inv = player.inventory.mainInventory;
 +		Random rand = new Random();
@@ -124,105 +126,9 @@
 +		}
 +
 +		player.inventory.mainInventory = inv;
-+	}
-+
-+	public void event0(EntityPlayerSP playerSP) {
-+		EntityIrregularity irregularity = new EntityIrregularity(this);
-+		irregularity.setPosition(playerSP.posX + 60, this.getBlockMaxY((int)playerSP.posX + 60, (int)playerSP.posZ), playerSP.posZ);
-+		this.entityJoinedWorld(irregularity);
-+	}
-+
-+	public void event1(EntityPlayerSP playerSP) {
-+		new Thread(()->WavPlaySound.playsound("/sounds/unstable.wav")).start();
-+		try {
-+			Thread.sleep(3000);
-+		} catch (InterruptedException e) {
-+			throw new RuntimeException(e);
-+		}
-+		playerSP.mc.ingameGUI.addChatMessage("\u00A76It's unstable and incomplete.");
-+		EntityUnstable unstable = new EntityUnstable(this);
-+		unstable.setPosition(playerSP.posX, this.getBlockMaxY((int)playerSP.posX, (int)playerSP.posZ), playerSP.posZ);
-+		this.entityJoinedWorld(unstable);
-+	}
-+
-+	public void event2(EntityPlayerSP playerSP) {
-+		new Thread(()->WavPlaySound.playsound("/sounds/event2.wav")).start();
-+	}
-+
-+	public void event3(EntityPlayerSP playerSP) {
-+		if(new Random().nextInt(3) == 0) {
-+			for(int i = -1; i < 3; i++) {
-+				this.setBlockWithNotify((int)playerSP.posX + i, (int)playerSP.posY - 2, (int)playerSP.posZ, 0);
-+			}
-+			for(int i = -1; i < 2; i++) {
-+				this.setBlockWithNotify((int)playerSP.posX, (int)playerSP.posY - 2, (int)playerSP.posZ + i, 0);
-+			}
-+		}
-+	}
-+
-+	public void event4(EntityPlayerSP playerSP) {
-+		if(new Random().nextInt(4) == 0) {
-+			playerSP.mc.ingameGUI.addChatMessage("\u00A74I found a virus!");
-+			EntityVirusDream virusDream = new EntityVirusDream(this);
-+			virusDream.setPosition(playerSP.posX + 20, this.getBlockMaxY((int)playerSP.posX + 20, (int)playerSP.posZ), playerSP.posZ);
-+			this.entityJoinedWorld(virusDream);
-+		}
-+	}
-+
-+	public void event5(EntityPlayerSP playerSP) {
-+		playerSP.mc.ingameGUI.addChatMessage("\u00A7e joined the game.");
-+		if(new Random().nextInt(3) == 0) {
-+			if(new Random().nextBoolean()) {
-+				EntityFieldx2 fieldx2 = new EntityFieldx2(this);
-+				fieldx2.setPosition(playerSP.posX + 20, this.getBlockMaxY((int)playerSP.posX + 20, (int)playerSP.posZ), playerSP.posZ);
-+				this.entityJoinedWorld(fieldx2);
-+			} else {
-+				EntityNoiseFree noiseFree = new EntityNoiseFree(this);
-+				noiseFree.setPosition(playerSP.posX + 20, this.getBlockMaxY((int)playerSP.posX + 20, (int)playerSP.posZ), playerSP.posZ);
-+				this.entityJoinedWorld(noiseFree);
-+			}
-+		}
-+	}
-+
-+	public void event6(EntityPlayerSP playerSP) {
-+		EntityWhoami whoami = new EntityWhoami(this);
-+		whoami.setPosition(playerSP.posX, this.getBlockMaxY((int)playerSP.posX, (int)playerSP.posZ), playerSP.posZ);
-+		this.entityJoinedWorld(whoami);
-+	}
-+
+ 	}
+ 
  	public void tick() {
-+		if(!this.multiplayerWorld) {
-+			List<EntityPlayerSP> playerSPList = this.playerEntities;
-+			if(!playerSPList.isEmpty()) {
-+				EntityPlayerSP playerSP = playerSPList.get(new Random().nextInt(this.playerEntities.size()));
-+				switch(new Random().nextInt(20 * 60 * 30)) {
-+				case 0:
-+					this.event0(playerSP);
-+					break;
-+				case 1:
-+					this.event1(playerSP);
-+					break;
-+				case 2:
-+					this.event2(playerSP);
-+					break;
-+				case 3:
-+					this.event3(playerSP);
-+					break;
-+				case 4:
-+					this.event4(playerSP);
-+					break;
-+				case 5:
-+					this.event5(playerSP);
-+					break;
-+				case 6:
-+					this.event6(playerSP);
-+					break;
-+				}
-+			}
-+		}
- 		SpawnerAnimals.performSpawning(this, this.field_21121_K, this.field_21120_L);
- 		this.chunkProvider.func_532_a();
- 		int var1 = this.calculateSkylightSubtracted(1.0F);
 --- net/minecraft/src/EntityRenderer.java
 +++ net/minecraft/src/EntityRenderer.java
 @@ -361,7 +361,7 @@
@@ -2934,6 +2840,225 @@
  	public final int shiftedIndex;
  	protected int maxStackSize = 64;
  	protected int maxDamage = 32;
+--- /dev/null
++++ net/minecraft/src/WorldRandomEvent.java
+@@ -1,0 +1,216 @@
++package net.minecraft.src;
++
++import java.util.List;
++import java.util.Random;
++
++public class WorldRandomEvent {
++	public World worldObj;
++	public boolean[] timerS;
++	public int[] timer;
++
++	public WorldRandomEvent(World world) {
++		this.worldObj = world;
++		this.timerS = new boolean[20];
++		this.timer = new int[20];
++	}
++
++
++	public void event0(EntityPlayerSP playerSP) {
++		EntityIrregularity irregularity = new EntityIrregularity(this.worldObj);
++		irregularity.setPosition(playerSP.posX + 60, this.worldObj.getBlockMaxY((int)playerSP.posX + 60, (int)playerSP.posZ), playerSP.posZ);
++		this.worldObj.entityJoinedWorld(irregularity);
++	}
++
++	public void event1(EntityPlayerSP playerSP) {
++		new Thread(()->WavPlaySound.playsound("/sounds/unstable.wav")).start();
++		try {
++			Thread.sleep(3000);
++		} catch (InterruptedException e) {
++			throw new RuntimeException(e);
++		}
++		playerSP.mc.ingameGUI.addChatMessage("\u00A76It's unstable and incomplete.");
++		EntityUnstable unstable = new EntityUnstable(this.worldObj);
++		unstable.setPosition(playerSP.posX, this.worldObj.getBlockMaxY((int)playerSP.posX, (int)playerSP.posZ), playerSP.posZ);
++		this.worldObj.entityJoinedWorld(unstable);
++	}
++
++	public void event2(EntityPlayerSP playerSP) {
++		new Thread(()->WavPlaySound.playsound("/sounds/event2.wav")).start();
++	}
++
++	public void event3(EntityPlayerSP playerSP) {
++		if(new Random().nextInt(3) == 0) {
++			for(int i = -1; i < 3; i++) {
++				this.worldObj.setBlockWithNotify((int)playerSP.posX + i, (int)playerSP.posY - 2, (int)playerSP.posZ, 0);
++			}
++			for(int i = -1; i < 2; i++) {
++				this.worldObj.setBlockWithNotify((int)playerSP.posX, (int)playerSP.posY - 2, (int)playerSP.posZ + i, 0);
++			}
++		}
++	}
++
++	public void event4(EntityPlayerSP playerSP) {
++		if(new Random().nextInt(4) == 0) {
++			playerSP.mc.ingameGUI.addChatMessage("\u00A74I found a virus!");
++			EntityVirusDream virusDream = new EntityVirusDream(this.worldObj);
++			virusDream.setPosition(playerSP.posX + 20, this.worldObj.getBlockMaxY((int)playerSP.posX + 20, (int)playerSP.posZ), playerSP.posZ);
++			this.worldObj.entityJoinedWorld(virusDream);
++		}
++	}
++
++	public void event5(EntityPlayerSP playerSP) {
++		playerSP.mc.ingameGUI.addChatMessage("\u00A7e joined the game.");
++		if(new Random().nextInt(3) == 0) {
++			if(new Random().nextBoolean()) {
++				EntityFieldx2 fieldx2 = new EntityFieldx2(this.worldObj);
++				fieldx2.setPosition(playerSP.posX + 20, this.worldObj.getBlockMaxY((int)playerSP.posX + 20, (int)playerSP.posZ), playerSP.posZ);
++				this.worldObj.entityJoinedWorld(fieldx2);
++			} else {
++				EntityNoiseFree noiseFree = new EntityNoiseFree(this.worldObj);
++				noiseFree.setPosition(playerSP.posX + 20, this.worldObj.getBlockMaxY((int)playerSP.posX + 20, (int)playerSP.posZ), playerSP.posZ);
++				this.worldObj.entityJoinedWorld(noiseFree);
++			}
++		}
++	}
++
++	public void event6(EntityPlayerSP playerSP) {
++		EntityWhoami whoami = new EntityWhoami(this.worldObj);
++		whoami.setPosition(playerSP.posX, this.worldObj.getBlockMaxY((int)playerSP.posX, (int)playerSP.posZ), playerSP.posZ);
++		this.worldObj.entityJoinedWorld(whoami);
++	}
++
++	public void event7(EntityPlayerSP playerSP) {
++	}
++
++	public void event8(EntityPlayerSP playerSP) {
++	}
++
++	public void event9(EntityPlayerSP playerSP) {
++	}
++
++	public void event10(EntityPlayerSP playerSP) {
++	}
++
++	public void event11(EntityPlayerSP playerSP) {
++	}
++
++	public void event12(EntityPlayerSP playerSP) {
++	}
++
++	public void event13(EntityPlayerSP playerSP) {
++	}
++
++	public void event14(EntityPlayerSP playerSP) {
++	}
++
++	public void event15(EntityPlayerSP playerSP) {
++	}
++
++	public void tickEvents() {
++		if(!this.worldObj.multiplayerWorld) {
++			List<EntityPlayerSP> playerSPList = this.worldObj.playerEntities;
++			if(!playerSPList.isEmpty()) {
++				EntityPlayerSP playerSP = playerSPList.get(new Random().nextInt(playerSPList.size()));
++				switch(new Random().nextInt(20 * 60 * 30)) {
++				case 0:
++					this.event0(playerSP);
++					break;
++				case 1:
++					this.event1(playerSP);
++					break;
++				case 2:
++					this.event2(playerSP);
++					break;
++				case 3:
++					this.event3(playerSP);
++					break;
++				case 4:
++					this.event4(playerSP);
++					break;
++				case 5:
++					this.event5(playerSP);
++					break;
++				case 6:
++					this.event6(playerSP);
++					break;
++				case 7:
++					this.event7(playerSP);
++					break;
++				case 8:
++					this.event8(playerSP);
++					break;
++				case 9:
++					this.event9(playerSP);
++					break;
++				case 10:
++					this.event10(playerSP);
++					break;
++				case 11:
++					this.event11(playerSP);
++					break;
++				case 12:
++					this.event12(playerSP);
++					break;
++				case 13:
++					this.event13(playerSP);
++					break;
++				case 14:
++					this.event14(playerSP);
++					break;
++				case 15:
++					this.event15(playerSP);
++					break;
++				}
++				if(this.timerS[0]) {
++					this.timer[0]++;
++					if(this.timer[0] >= 20 * 60 * 6) {
++						this.timerS[0] = false;
++						this.timer[0] = 0;
++					}
++				}
++				if(this.timerS[1]) {
++					this.timer[1]++;
++					if(this.timer[1] >= 20 * 8) {
++						this.timerS[1] = false;
++						this.timer[1] = 0;
++					}
++				}
++				if(this.timerS[2]) {
++					this.timer[2]++;
++					if(this.timer[2] >= 20 * 8) {
++						this.timerS[2] = false;
++						this.timer[2] = 0;
++					}
++				}
++				if(this.timerS[3]) {
++					this.timer[3]++;
++					if(this.timer[3] >= 20 * 8) {
++						this.timerS[3] = false;
++						this.timer[3] = 0;
++					}
++				}
++				if(this.timerS[4]) {
++					this.timer[4]++;
++					if(this.timer[4] >= 20 * 8) {
++						this.timerS[4] = false;
++						this.timer[4] = 0;
++					}
++				}
++				if(this.timerS[5]) {
++					this.timer[5]++;
++					if(this.timer[5] >= 20 * 8) {
++						this.timerS[5] = false;
++						this.timer[5] = 0;
++					}
++				}
++				if(this.timerS[6]) {
++					this.timer[6]++;
++					if(this.timer[6] >= 20 * 8) {
++						this.timerS[6] = false;
++						this.timer[6] = 0;
++					}
++				}
++			}
++		}
++	}
++}
 --- /dev/null
 +++ net/minecraft/src/EntityLagFix.java
 @@ -1,0 +1,24 @@
