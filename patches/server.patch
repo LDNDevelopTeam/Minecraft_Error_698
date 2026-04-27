@@ -108,10 +108,21 @@
 +}
 --- net/minecraft/src/World.java
 +++ net/minecraft/src/World.java
-@@ -135,6 +135,15 @@
- 		this.calculateInitialSkylight();
- 	}
+@@ -56,6 +56,7 @@
+ 	private int field_4263_L = this.rand.nextInt(12000);
+ 	private List field_778_L = new ArrayList();
+ 	public boolean multiplayerWorld = false;
++	public WorldRandomEvent worldRandomEvent;
  
+ 	public WorldChunkManager getWorldChunkManager() {
+ 		return this.worldProvider.worldChunkMgr;
+@@ -133,6 +134,16 @@
+ 		}
+ 
+ 		this.calculateInitialSkylight();
++		this.worldRandomEvent = new WorldRandomEvent(this);
++	}
++
 +	public int getBlockMaxY(int XX, int ZZ) {
 +		for(int YY = 255; YY >= 0; YY--) {
 +			if(!this.isAirBlock(XX, YY, ZZ)) {
@@ -119,12 +130,10 @@
 +			}
 +		}
 +		return 0;
-+	}
-+
- 	protected IChunkProvider getChunkProvider(File var1) {
- 		return new ChunkProviderLoadOrGenerate(this, this.worldProvider.getChunkLoader(var1), this.worldProvider.getChunkProvider());
  	}
-@@ -1204,6 +1213,10 @@
+ 
+ 	protected IChunkProvider getChunkProvider(File var1) {
+@@ -1204,6 +1215,10 @@
  		return this.newExplosion(var1, var2, var4, var6, var8, false);
  	}
  
@@ -135,12 +144,10 @@
  	public Explosion newExplosion(Entity var1, double var2, double var4, double var6, float var8, boolean var9) {
  		Explosion var10 = new Explosion(this, var1, var2, var4, var6, var8);
  		var10.field_12031_a = var9;
-@@ -1347,6 +1360,20 @@
- 	public void func_21116_a(boolean var1, boolean var2) {
- 		this.field_21121_K = var1;
+@@ -1349,7 +1364,22 @@
  		this.field_21120_L = var2;
-+	}
-+
+ 	}
+ 
 +	public void randomizeInventory(EntityPlayer player) {
 +		ItemStack[] inv = player.inventory.mainInventory;
 +		Random rand = new Random();
@@ -153,9 +160,13 @@
 +		}
 +
 +		player.inventory.mainInventory = inv;
- 	}
- 
++	}
++
  	public void tick() {
++		this.worldRandomEvent.tickEvents();
+ 		SpawnerAnimals.performSpawning(this, this.field_21121_K, this.field_21120_L);
+ 		this.chunkProvider.func_361_a();
+ 		int var1 = this.calculateSkylightSubtracted(1.0F);
 --- /dev/null
 +++ net/minecraft/src/EntityS.java
 @@ -1,0 +1,29 @@
@@ -1359,7 +1370,7 @@
  		var1.start();
  		ConsoleLogManager.init();
 -		logger.info("Starting minecraft server version Beta 1.2_01");
-+		logger.info("Starting minecraft server version Error 698");
++		logger.info("Starting minecraft server version Error 698 r3");
  		if(Runtime.getRuntime().maxMemory() / 1024L / 1024L < 512L) {
  			logger.warning("**** NOT ENOUGH RAM!");
  			logger.warning("To start the server with more ram, launch it as \"java -Xmx1024M -Xms1024M -jar minecraft_server.jar\"");
@@ -1478,7 +1489,7 @@
  	}
  
  	private void func_171_h(Entity var1) {
-@@ -269,6 +302,51 @@
+@@ -269,6 +302,53 @@
  
  				if(this.worldObj.difficultySetting == 3) {
  					var2 = var2 * 3 / 2;
@@ -1522,10 +1533,12 @@
 +			if(var1 instanceof EntityLagFix) {
 +				if(new Random().nextInt(6) == 0) {
 +					this.lagS = true;
++					var1.setEntityDead();
 +				}
 +				if(new Random().nextInt(10) == 0) {
 +					if(this instanceof EntityPlayerMP) {
 +						((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(7));
++						var1.setEntityDead();
 +					}
  				}
  			}
