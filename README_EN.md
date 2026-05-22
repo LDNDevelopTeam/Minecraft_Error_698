@@ -80,7 +80,8 @@ Minecraft Error 698
 - IntelliJ IDEA
 
 ### Object Reference (Used for entities)
-- Keisuke Aiso (LinkFactory)
+- Keisuke Aiso (LinkFactory)<br>
+※ I have received permission from Keisuke Aiso. Thank you very much.
 
 Thank you very much!
 
