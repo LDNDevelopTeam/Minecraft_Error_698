@@ -79,6 +79,9 @@ Minecraft Error 698
 - RetroMCP  
 - IntelliJ IDEA  
 
+### オブジェ参考
+- Keisuke Aiso(LinkFactory)
+
 ありがとうございます！  
 
 > 要素はプレイしてからのお楽しみです。  
