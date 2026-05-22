@@ -81,6 +81,7 @@ Minecraft Error 698
 
 ### オブジェ参考(エンティティに使用)
 - Keisuke Aiso(LinkFactory)
+※ Keisuke Aisoさんに許可をいただきました。ありがとうございます。
 
 ありがとうございます！  
 
