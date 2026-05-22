@@ -80,7 +80,7 @@ Minecraft Error 698
 - IntelliJ IDEA  
 
 ### オブジェ参考(エンティティに使用)
-- Keisuke Aiso(LinkFactory)
+- Keisuke Aiso(LinkFactory)<br>
 ※ Keisuke Aisoさんに許可をいただきました。ありがとうございます。
 
 ありがとうございます！  
