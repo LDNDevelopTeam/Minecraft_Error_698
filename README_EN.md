@@ -77,7 +77,10 @@ Minecraft Error 698
 
 ### Tools
 - RetroMCP  
-- IntelliJ IDEA  
+- IntelliJ IDEA
+
+### Object Reference (Used for entities)
+- Keisuke Aiso (LinkFactory)
 
 Thank you very much!
 
