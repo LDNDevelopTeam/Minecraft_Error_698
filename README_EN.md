@@ -74,6 +74,7 @@ Minecraft Error 698
 
 ### Partial Code (AI)
 - ChatGPT
+- Gemini
 
 ### Tools
 - RetroMCP  
