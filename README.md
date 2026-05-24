@@ -73,7 +73,8 @@ Minecraft Error 698
 - ConfyUI、Stable Audio Open(AI)
 
 ### 一部コード（AI）
-- ChatGPT  
+- ChatGPT
+- Gemini
 
 ### ツール
 - RetroMCP  
