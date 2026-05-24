@@ -547,6 +547,21 @@
 +		this.modelPPMain = var1;
 +	}
 +}
+--- net/minecraft/src/EnumCreatureType.java
++++ net/minecraft/src/EnumCreatureType.java
+@@ -1,9 +1,9 @@
+ package net.minecraft.src;
+ 
+ public enum EnumCreatureType {
+-	monster(IMobs.class, 70, Material.air, false),
+-	creature(EntityAnimals.class, 15, Material.air, true),
+-	waterCreature(EntityWaterMob.class, 5, Material.water, true);
++	monster(IMobs.class, 40, Material.air, false),
++	creature(EntityAnimals.class, 3, Material.air, true),
++	waterCreature(EntityWaterMob.class, 2, Material.water, true);
+ 
+ 	private final Class creatureClass;
+ 	private final int maxNumberOfCreature;
 --- /dev/null
 +++ net/minecraft/src/EntityIrregularity.java
 @@ -1,0 +1,48 @@
@@ -3669,7 +3684,7 @@
 +}
 --- /dev/null
 +++ net/minecraft/src/Entity698Mob.java
-@@ -1,0 +1,62 @@
+@@ -1,0 +1,72 @@
 +package net.minecraft.src;
 +
 +public class Entity698Mob extends EntityCreature implements IMobs {
@@ -3731,6 +3746,16 @@
 +		super.readEntityFromNBT(var1);
 +	}
 +
++	public boolean getCanSpawnHere() {
++		int var1 = MathHelper.floor_double(this.posX);
++		int var2 = MathHelper.floor_double(this.boundingBox.minY);
++		int var3 = MathHelper.floor_double(this.posZ);
++		return this.worldObj.getBlockId(var1, var2 - 1, var3) == Block.grass.blockID && this.worldObj.getBlockLightValue(var1, var2, var3) > 8 && super.getCanSpawnHere();
++	}
++
++	public int func_421_b() {
++		return 120;
++	}
 +}
 --- net/minecraft/src/TexturedQuad.java
 +++ net/minecraft/src/TexturedQuad.java
