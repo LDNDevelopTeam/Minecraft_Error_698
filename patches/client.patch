@@ -158,7 +158,40 @@
  		int var1 = this.calculateSkylightSubtracted(1.0F);
 --- net/minecraft/src/EntityRenderer.java
 +++ net/minecraft/src/EntityRenderer.java
-@@ -361,7 +361,7 @@
+@@ -31,6 +31,8 @@
+ 	float fogColorBlue;
+ 	private float q;
+ 	private float r;
++	private JSRenderer jsRenderer;
++	private boolean glitchInited = false;
+ 
+ 	public EntityRenderer(Minecraft var1) {
+ 		this.mc = var1;
+@@ -314,6 +316,23 @@
+ 			int var11 = var9 - Mouse.getY() * var9 / this.mc.displayHeight - 1;
+ 			if(this.mc.theWorld != null) {
+ 				this.renderWorld(var1);
++				if (jsRenderer == null) {
++					try {
++						jsRenderer = new JSRenderer(
++								"/shaders/js.vert",
++								"/shaders/js.frag"
++						);
++					} catch (Exception e) {
++						e.printStackTrace();
++					}
++				}
++				// ② 【一番最初に】浮世絵ホラー背景を描く
++				if (jsRenderer != null) {
++					// currentTimeMillisを使い、100秒ごとに0に戻るようにして
++					// シェーダー内のfloat精度落ち（アニメーション停止）を防ぐ
++					float timeSec = (System.currentTimeMillis() % 100000L) / 1000.0f;
++					jsRenderer.drawBackground(timeSec);
++				}
+ 				if(!Keyboard.isKeyDown(Keyboard.KEY_F1)) {
+ 					this.mc.ingameGUI.renderGameOverlay(var1, this.mc.currentScreen != null, var10, var11);
+ 				}
+@@ -361,7 +380,7 @@
  			}
  
  			GL11.glViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
@@ -238,7 +271,7 @@
 +		 this.drawCenteredString(this.fontRenderer, this.splashText, 0, -8, 16776960);
 +		 GL11.glPopMatrix();
 +		 */
-+		this.drawString(this.fontRenderer, "Minecraft \u00A74Error 698 Release 3", 2, 2, 5263440);
++		this.drawString(this.fontRenderer, "Minecraft \u00A74Error 698 Release 4", 2, 2, 5263440);
 +		String var6 = "This version is not official from Mojang. It's a creation. Do not redistribute!";
  		this.drawString(this.fontRenderer, var6, this.width - this.fontRenderer.getStringWidth(var6) - 2, this.height - 10, 16777215);
  		super.drawScreen(var1, var2, var3);
@@ -262,10 +295,11 @@
  						var4.func_1238_a(Block.stone, var12);
 --- net/minecraft/src/RenderManager.java
 +++ net/minecraft/src/RenderManager.java
-@@ -50,6 +50,16 @@
+@@ -50,6 +50,19 @@
  		this.entityRenderMap.put(EntityMinecart.class, new RenderMinecart());
  		this.entityRenderMap.put(EntityBoat.class, new RenderBoat());
  		this.entityRenderMap.put(EntityFish.class, new RenderFish());
++
 +		this.entityRenderMap.put(EntityPP.class, new RenderPP(new ModelPP(), 0.5F));
 +		this.entityRenderMap.put(EntityIrregularity.class, new RenderIregularity(new ModelIregularity(), 0.5F));
 +		this.entityRenderMap.put(EntityUnstable.class, new RenderLiving(new ModelBiped(), 0.5F));
@@ -276,6 +310,8 @@
 +		this.entityRenderMap.put(EntityVirusDream.class, new RenderLiving(new ModelBiped(), 0.5F));
 +		this.entityRenderMap.put(EntityS.class, new RenderLivingAlpha(new ModelBiped(), 0.5F));
 +		this.entityRenderMap.put(EntityLagFix.class, new RenderLagFix(new ModelLagFix(), 0.5F));
++
++		this.entityRenderMap.put(EntityLongNONO.class, new RenderNONO(new ModelNONO(), 0.5F, 2.0F));
  		Iterator var1 = this.entityRenderMap.values().iterator();
  
  		while(var1.hasNext()) {
@@ -338,6 +374,17 @@
 +		}
 +	}
 +}
+--- net/minecraft/src/EntityCreature.java
++++ net/minecraft/src/EntityCreature.java
+@@ -1,7 +1,7 @@
+ package net.minecraft.src;
+ 
+ public class EntityCreature extends EntityLiving {
+-	private PathEntity pathToEntity;
++	protected PathEntity pathToEntity;
+ 	protected Entity playerToAttack;
+ 	protected boolean hasAttacked = false;
+ 
 --- net/minecraft/src/GuiIngame.java
 +++ net/minecraft/src/GuiIngame.java
 @@ -26,6 +26,22 @@
@@ -428,7 +475,7 @@
  		String var23;
  		if(Keyboard.isKeyDown(Keyboard.KEY_F3)) {
 -			var8.drawStringWithShadow("Minecraft Beta 1.2_02 (" + this.mc.debug + ")", 2, 2, 16777215);
-+			var8.drawStringWithShadow("Minecraft \u00A74Error 698 Release 3\u00A7r (" + this.mc.debug + ")", 2, 2, 16777215);
++			var8.drawStringWithShadow("Minecraft \u00A74Error 698 Release 4\u00A7r (" + this.mc.debug + ")", 2, 2, 16777215);
  			var8.drawStringWithShadow(this.mc.func_6241_m(), 2, 12, 16777215);
  			var8.drawStringWithShadow(this.mc.func_6262_n(), 2, 22, 16777215);
  			var8.drawStringWithShadow(this.mc.func_6245_o(), 2, 32, 16777215);
@@ -437,7 +484,7 @@
  			this.drawString(var8, "z: " + this.mc.thePlayer.posZ, 2, 80, 14737632);
  		} else {
 -			var8.drawStringWithShadow("Minecraft Beta 1.2_02", 2, 2, 16777215);
-+			var8.drawStringWithShadow("Minecraft \u00A74Error 698 Release 3", 2, 2, 16777215);
++			var8.drawStringWithShadow("Minecraft \u00A74Error 698 Release 4", 2, 2, 16777215);
  		}
  
  		if(this.field_9419_j > 0) {
@@ -507,7 +554,7 @@
 +
 +import java.util.Random;
 +
-+public class EntityIrregularity extends EntityAnimals {
++public class EntityIrregularity extends Entity698Mob {
 +	public EntityIrregularity(World var1) {
 +		super(var1);
 +		this.texture = "/modmob/irregularity.png";
@@ -646,6 +693,91 @@
  	}
  }
 --- /dev/null
++++ net/minecraft/src/RenderNONO.java
+@@ -1,0 +1,18 @@
++package net.minecraft.src;
++
++import org.lwjgl.opengl.GL11;
++
++public class RenderNONO extends RenderLiving {
++	protected ModelNONO modelNONOMain;
++	protected float size;
++
++	public RenderNONO(ModelNONO var1, float var2, float size) {
++		super(var1, var2);
++		this.modelNONOMain = var1;
++		this.size = size;
++	}
++
++	protected void preRenderCallback(EntityLiving var1, float var2) {
++		GL11.glScalef(this.size, this.size, this.size);
++	}
++}
+--- /dev/null
++++ net/minecraft/src/WorldGenLongNONO.java
+@@ -1,0 +1,61 @@
++package net.minecraft.src;
++
++import java.util.Random;
++
++public class WorldGenLongNONO {
++	public boolean generate(World var1, Random var2, int var3, int var4, int var5) {
++		int length = -48;
++		int width = 11;
++		int height = 10;
++
++		EntityLongNONO entityTheWatcher = new EntityLongNONO(var1);
++		entityTheWatcher.setPosition(var3 + length + 4, var4 + 1, var5 + (double)width / 2);
++		var1.entityJoinedWorld(entityTheWatcher);
++
++		for(int i = 0; i > length; i--) {
++			for(int j = 0; j < width; j++) {
++				for(int k = 0; k < height; k++) {
++					int block = var1.getBlockId(i + var3, k + var4, j + var5);
++					if(block == Block.ice.blockID || block == Block.snow.blockID || block == Block.waterStill.blockID || block == Block.waterMoving.blockID || block == Block.lavaMoving.blockID || block == Block.lavaStill.blockID || block == Block.fire.blockID) {
++						for(int l = 0; l < 3; l++) {
++							this.blocks(var1, i, j, k, height, width, length, var3, var4, var5);
++						}
++					} else {
++						this.blocks(var1, i, j, k, height, width, length, var3, var4, var5);
++					}
++				}
++			}
++		}
++		return true;
++	}
++
++	public void blocks(World var1, int i, int j, int k, int height, int width, int length, int var3, int var4, int var5) {
++		if(k == 0) {
++			var1.setBlockWithNotify(i + var3, k + var4, j + var5, Block.lightStone.blockID);
++			return;
++		}
++
++		if(i == 0 || i == length + 1) {
++			var1.setBlockWithNotify(i + var3, k + var4, j + var5, Block.cobblestone.blockID);
++			return;
++		}
++
++		boolean isToriiPart = false;
++
++		if(k == height - 1) {
++			isToriiPart = true;
++		} else if(k == height - 3 && j >= 1 && j <= width - 2) {
++			isToriiPart = true;
++		} else if(j == 2 || j == width - 3) {
++			isToriiPart = true;
++		} else if(k == height - 2 && j == width / 2) {
++			isToriiPart = true;
++		}
++
++		if(isToriiPart) {
++			var1.setBlockWithNotify(i + var3, k + var4, j + var5, Block.cobblestone.blockID);
++		} else {
++			var1.setBlockWithNotify(i + var3, k + var4, j + var5, 0);
++		}
++	}
++}
+--- /dev/null
 +++ net/minecraft/src/ModelFieldX2.java
 @@ -1,0 +1,105 @@
 +package net.minecraft.src;
@@ -753,6 +885,106 @@
 +		this.bipedLeftArm.rotateAngleX -= MathHelper.sin(var3 * 0.067F) * 0.05F;
 +	}
 +}
+--- /dev/null
++++ net/minecraft/src/ModelNONO.java
+@@ -1,0 +1,97 @@
++package net.minecraft.src;
++
++public class ModelNONO extends ModelBase {
++	public ModelRenderer bipedHead;
++	public ModelRenderer bipedHeadwear;
++	public ModelRenderer bipedBody;
++	public ModelRenderer bipedRightArm;
++	public ModelRenderer bipedLeftArm;
++	public ModelRenderer bipedRightLeg;
++	public ModelRenderer bipedLeftLeg;
++
++	public ModelNONO() {
++		this(0.0F);
++	}
++
++	public ModelNONO(float var1) {
++		this(var1, 0.0F);
++	}
++
++	public ModelNONO(float var1, float var2) {
++		// 頭部
++		this.bipedHead = new ModelRenderer(0, 26, 64, 64);
++		this.bipedHead.addBox(-4.0F, -8.0F, -4.0F, 8, 8, 8, var1);
++		this.bipedHead.setPosition(0.0F, -10.0F + var2, -5.0F);
++
++		// 頭部装飾
++		this.bipedHeadwear = new ModelRenderer(0, 0, 64, 64);
++		this.bipedHeadwear.addBox(-4.0F, -8.0F, -4.0F, 8, 18, 8, var1 + 0.5F);
++		this.bipedHeadwear.setPosition(0.0F, -10.0F + var2, -5.0F);
++
++		// 胴体 (body と body_r1 を1つのパーツに統合)
++		// テクスチャは body_r1 (0, 42) を使用し、角度を 0.1745 + 0.1745 = 0.349 に合算
++		this.bipedBody = new ModelRenderer(0, 42, 64, 64);
++		this.bipedBody.addBox(-2.0F, -6.0F, -2.0F, 4, 12, 4, var1);
++		this.bipedBody.setPosition(0.0F, -4.3867F + var2, -1.6587F);
++		this.bipedBody.rotateAngleX = 0.349F;
++
++		// 左腕
++		this.bipedLeftArm = new ModelRenderer(16, 42, 64, 64);
++		this.bipedLeftArm.addBox(-1.5F, -2.0F, -2.0F, 3, 4, 4, var1);
++		this.bipedLeftArm.setPosition(2.5F, 0.0F + var2, -4.0F);
++
++		// 右腕
++		this.bipedRightArm = new ModelRenderer(44, 0, 64, 64);
++		this.bipedRightArm.addBox(-1.5F, -2.0F, -2.0F, 3, 4, 4, var1);
++		this.bipedRightArm.setPosition(-2.5F, 0.0F + var2, -4.0F);
++
++		// 左脚
++		this.bipedLeftLeg = new ModelRenderer(32, 0, 64, 64);
++		this.bipedLeftLeg.addBox(-1.0F, -2.0F, -2.0F, 2, 24, 4, var1);
++		this.bipedLeftLeg.setPosition(3.0F, 2.0F + var2, 0.0F);
++
++		// 右脚
++		this.bipedRightLeg = new ModelRenderer(32, 28, 64, 64);
++		this.bipedRightLeg.addBox(-1.0F, -2.0F, -2.0F, 2, 24, 4, var1);
++		this.bipedRightLeg.setPosition(-3.0F, 2.0F + var2, 0.0F);
++	}
++
++	public void render(float var1, float var2, float var3, float var4, float var5, float var6) {
++		this.setRotationAngles(var1, var2, var3, var4, var5, var6);
++		this.bipedHead.render(var6);
++		this.bipedBody.render(var6);
++		this.bipedRightArm.render(var6);
++		this.bipedLeftArm.render(var6);
++		this.bipedRightLeg.render(var6);
++		this.bipedLeftLeg.render(var6);
++		this.bipedHeadwear.render(var6);
++	}
++
++	public void setRotationAngles(float var1, float var2, float var3, float var4, float var5, float var6) {
++		this.bipedHead.rotateAngleY = var4 / (180.0F / (float)Math.PI);
++		this.bipedHead.rotateAngleX = var5 / (180.0F / (float)Math.PI);
++		this.bipedHeadwear.rotateAngleY = this.bipedHead.rotateAngleY;
++		this.bipedHeadwear.rotateAngleX = this.bipedHead.rotateAngleX;
++		this.bipedRightLeg.rotateAngleX = MathHelper.cos(var1 * 0.6662F) * 1.4F * var2;
++		this.bipedLeftLeg.rotateAngleX = MathHelper.cos(var1 * 0.6662F + (float)Math.PI) * 1.4F * var2;
++		this.bipedRightLeg.rotateAngleY = 0.0F;
++		this.bipedLeftLeg.rotateAngleY = 0.0F;
++		if(this.field_1243_l) {
++			this.bipedRightLeg.rotateAngleX = (float)Math.PI * -0.4F;
++			this.bipedLeftLeg.rotateAngleX = (float)Math.PI * -0.4F;
++			this.bipedRightLeg.rotateAngleY = (float)Math.PI * 0.1F;
++			this.bipedLeftLeg.rotateAngleY = (float)Math.PI * -0.1F;
++		}
++
++		if(this.onGround > -9990.0F) {
++			float var7 = this.onGround;
++			this.bipedBody.rotateAngleY = MathHelper.sin(MathHelper.sqrt_float(var7) * (float)Math.PI * 2.0F) * 0.2F;
++			var7 = 1.0F - this.onGround;
++			var7 *= var7;
++			var7 *= var7;
++			var7 = 1.0F - var7;
++			float var8 = MathHelper.sin(var7 * (float)Math.PI);
++			float var9 = MathHelper.sin(this.onGround * (float)Math.PI) * -(this.bipedHead.rotateAngleX - 0.7F) * (12.0F / 16.0F);
++		}
++	}
++}
 --- net/minecraft/src/TileEntitySignRenderer.java
 +++ net/minecraft/src/TileEntitySignRenderer.java
 @@ -10,7 +10,7 @@
@@ -836,143 +1068,6 @@
 +	}
 +}
 --- /dev/null
-+++ net/minecraft/src/NoiseUtil.java
-@@ -1,0 +1,134 @@
-+package net.minecraft.src;
-+
-+import java.awt.image.BufferedImage;
-+import java.util.Random;
-+
-+public class NoiseUtil {
-+	private static Random rand = new Random();
-+
-+	public static BufferedImage all(BufferedImage img) {
-+		img = addGrainNoise(img, 30);
-+		img = addColorNoise(img, 30);
-+		//img = this.addSaltPepperNoise(img, 0.5);
-+		//img = this.addBandingNoise(img, 1.0D, 8);
-+		//img = this.addPaletteNoise(img, new int[]{0x000000, 0xFFFFFF, 0xFF0000}, 4);
-+		return img;
-+	}
-+
-+	public static BufferedImage addGrainNoise(BufferedImage img, int intensity) {
-+		BufferedImage out = new BufferedImage(img.getWidth(), img.getHeight(), img.getType());
-+		for(int y = 0; y < img.getHeight(); y++) {
-+			for(int x = 0; x < img.getWidth(); x++) {
-+				int rgb = img.getRGB(x, y);
-+				int a = (rgb >> 24) & 0xFF;
-+				int r = ((rgb >> 16) & 0xFF) + rand.nextInt(intensity * 2 + 1) - intensity;
-+				int g = ((rgb >> 8) & 0xFF) + rand.nextInt(intensity * 2 + 1) - intensity;
-+				int b = (rgb & 0xFF) + rand.nextInt(intensity * 2 + 1) - intensity;
-+
-+				r = clamp(r);
-+				g = clamp(g);
-+				b = clamp(b);
-+
-+				out.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
-+			}
-+		}
-+		return out;
-+	}
-+
-+	public static BufferedImage addColorNoise(BufferedImage img, int intensity) {
-+		BufferedImage out = new BufferedImage(img.getWidth(), img.getHeight(), img.getType());
-+		for(int y = 0; y < img.getHeight(); y++) {
-+			for(int x = 0; x < img.getWidth(); x++) {
-+				int rgb = img.getRGB(x, y);
-+				int a = (rgb >> 24) & 0xFF;
-+				int r = ((rgb >> 16) & 0xFF) + rand.nextInt(intensity * 2 + 1) - intensity;
-+				int g = ((rgb >> 8) & 0xFF) + rand.nextInt(intensity * 2 + 1) - intensity;
-+				int b = (rgb & 0xFF) + rand.nextInt(intensity * 2 + 1) - intensity;
-+
-+				r = clamp(r);
-+				g = clamp(g);
-+				b = clamp(b);
-+
-+				out.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
-+			}
-+		}
-+		return out;
-+	}
-+
-+	public static BufferedImage addSaltPepperNoise(BufferedImage img, double probability) {
-+		BufferedImage out = new BufferedImage(img.getWidth(), img.getHeight(), img.getType());
-+		for(int y = 0; y < img.getHeight(); y++) {
-+			for(int x = 0; x < img.getWidth(); x++) {
-+				int rgb = img.getRGB(x, y);
-+				int a = (rgb >> 24) & 0xFF;
-+
-+				if(rand.nextDouble() < probability) {
-+					int val = rand.nextBoolean() ? 0x000000 : 0xFFFFFF;
-+					out.setRGB(x, y, (a << 24) | val);
-+				} else {
-+					out.setRGB(x, y, rgb);
-+				}
-+			}
-+		}
-+		return out;
-+	}
-+
-+	public static BufferedImage addBandingNoise(BufferedImage img, double frequency, int amplitude) {
-+		BufferedImage out = new BufferedImage(img.getWidth(), img.getHeight(), img.getType());
-+		for(int y = 0; y < img.getHeight(); y++) {
-+			for(int x = 0; x < img.getWidth(); x++) {
-+				int rgb = img.getRGB(x, y);
-+				int a = (rgb >> 24) & 0xFF;
-+
-+				int r = ((rgb >> 16) & 0xFF) + (int)(Math.sin(x * frequency + y * frequency) * amplitude);
-+				int g = ((rgb >> 8) & 0xFF) + (int)(Math.sin(x * frequency + y * frequency) * amplitude);
-+				int b = (rgb & 0xFF) + (int)(Math.sin(x * frequency + y * frequency) * amplitude);
-+
-+				r = clamp(r);
-+				g = clamp(g);
-+				b = clamp(b);
-+
-+				out.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
-+			}
-+		}
-+		return out;
-+	}
-+
-+	public static BufferedImage addPaletteNoise(BufferedImage img, int[] palette, int intensity) {
-+		BufferedImage out = new BufferedImage(img.getWidth(), img.getHeight(), img.getType());
-+		for(int y = 0; y < img.getHeight(); y++) {
-+			for(int x = 0; x < img.getWidth(); x++) {
-+				int rgb = img.getRGB(x, y);
-+				int a = (rgb >> 24) & 0xFF;
-+				int closest = palette[0];
-+				int minDist = Integer.MAX_VALUE;
-+
-+				for(int c : palette) {
-+					int dr = ((rgb >> 16) & 0xFF) - ((c >> 16) & 0xFF);
-+					int dg = ((rgb >> 8) & 0xFF) - ((c >> 8) & 0xFF);
-+					int db = (rgb & 0xFF) - (c & 0xFF);
-+					int dist = dr * dr + dg * dg + db * db;
-+					if(dist < minDist) {
-+						minDist = dist;
-+						closest = c;
-+					}
-+				}
-+
-+				int r = ((closest >> 16) & 0xFF) + rand.nextInt(intensity * 2 + 1) - intensity;
-+				int g = ((closest >> 8) & 0xFF) + rand.nextInt(intensity * 2 + 1) - intensity;
-+				int b = (closest & 0xFF) + rand.nextInt(intensity * 2 + 1) - intensity;
-+
-+				r = clamp(r);
-+				g = clamp(g);
-+				b = clamp(b);
-+
-+				out.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
-+			}
-+		}
-+		return out;
-+	}
-+
-+	private static int clamp(int val) {
-+		return Math.max(0, Math.min(255, val));
-+	}
-+}
---- /dev/null
 +++ net/minecraft/src/Packet81Sound.java
 @@ -1,0 +1,32 @@
 +package net.minecraft.src;
@@ -1005,6 +1100,138 @@
 +
 +	public int getPacketSize() {
 +		return this.path.length();
++	}
++}
+--- /dev/null
++++ net/minecraft/src/Entity698MobLong.java
+@@ -1,0 +1,129 @@
++package net.minecraft.src;
++
++public class Entity698MobLong extends Entity698Mob implements IMobs {
++	public Entity698MobLong(World var1) {
++	super(var1);
++}
++
++	protected void updatePlayerActionState() {
++		this.hasAttacked = false;
++		float var1 = 64.0F;
++		if(this.playerToAttack == null) {
++			this.playerToAttack = this.findPlayerToAttack();
++			if(this.playerToAttack != null) {
++				this.pathToEntity = this.worldObj.getPathToEntity(this, this.playerToAttack, var1);
++			}
++		} else if(!this.playerToAttack.isEntityAlive()) {
++			this.playerToAttack = null;
++		} else {
++			float var2 = this.playerToAttack.getDistanceToEntity(this);
++			if(this.canEntityBeSeen(this.playerToAttack)) {
++				this.attackEntity(this.playerToAttack, var2);
++			}
++		}
++
++		if(this.hasAttacked || this.playerToAttack == null || this.pathToEntity != null && this.rand.nextInt(20) != 0) {
++			if(this.pathToEntity == null && this.rand.nextInt(80) == 0 || this.rand.nextInt(80) == 0) {
++				boolean var21 = false;
++				int var3 = -1;
++				int var4 = -1;
++				int var5 = -1;
++				float var6 = -99999.0F;
++
++				for(int var7 = 0; var7 < 10; ++var7) {
++					int var8 = MathHelper.floor_double(this.posX + (double)this.rand.nextInt(13) - 6.0D);
++					int var9 = MathHelper.floor_double(this.posY + (double)this.rand.nextInt(7) - 3.0D);
++					int var10 = MathHelper.floor_double(this.posZ + (double)this.rand.nextInt(13) - 6.0D);
++					float var11 = this.getBlockPathWeight(var8, var9, var10);
++					if(var11 > var6) {
++						var6 = var11;
++						var3 = var8;
++						var4 = var9;
++						var5 = var10;
++						var21 = true;
++					}
++				}
++
++				if(var21) {
++					this.pathToEntity = this.worldObj.getEntityPathToXYZ(this, var3, var4, var5, 10.0F);
++				}
++			}
++		} else {
++			this.pathToEntity = this.worldObj.getPathToEntity(this, this.playerToAttack, var1);
++		}
++
++		int var22 = MathHelper.floor_double(this.boundingBox.minY);
++		boolean var23 = this.handleWaterMovement();
++		boolean var24 = this.handleLavaMovement();
++		this.rotationPitch = 0.0F;
++		if(this.pathToEntity != null && this.rand.nextInt(100) != 0) {
++			Vec3D var25 = this.pathToEntity.getPosition(this);
++			double var26 = (double)(this.width * 2.0F);
++
++			while(var25 != null && var25.squareDistanceTo(this.posX, var25.yCoord, this.posZ) < var26 * var26) {
++				this.pathToEntity.incrementPathIndex();
++				if(this.pathToEntity.isFinished()) {
++					var25 = null;
++					this.pathToEntity = null;
++				} else {
++					var25 = this.pathToEntity.getPosition(this);
++				}
++			}
++
++			this.isJumping = false;
++			if(var25 != null) {
++				double var27 = var25.xCoord - this.posX;
++				double var28 = var25.zCoord - this.posZ;
++				double var12 = var25.yCoord - (double)var22;
++				float var14 = (float)(Math.atan2(var28, var27) * 180.0D / (double)((float)Math.PI)) - 90.0F;
++				float var15 = var14 - this.rotationYaw;
++
++				for(this.moveForward = this.moveSpeed; var15 < -180.0F; var15 += 360.0F) {
++				}
++
++				while(var15 >= 180.0F) {
++					var15 -= 360.0F;
++				}
++
++				if(var15 > 30.0F) {
++					var15 = 30.0F;
++				}
++
++				if(var15 < -30.0F) {
++					var15 = -30.0F;
++				}
++
++				this.rotationYaw += var15;
++				if(this.hasAttacked && this.playerToAttack != null) {
++					double var16 = this.playerToAttack.posX - this.posX;
++					double var18 = this.playerToAttack.posZ - this.posZ;
++					float var20 = this.rotationYaw;
++					this.rotationYaw = (float)(Math.atan2(var18, var16) * 180.0D / (double)((float)Math.PI)) - 90.0F;
++					var15 = (var20 - this.rotationYaw + 90.0F) * (float)Math.PI / 180.0F;
++					this.moveStrafing = -MathHelper.sin(var15) * this.moveForward * 1.0F;
++					this.moveForward = MathHelper.cos(var15) * this.moveForward * 1.0F;
++				}
++
++				if(var12 > 0.0D) {
++					this.isJumping = true;
++				}
++			}
++
++			if(this.playerToAttack != null) {
++				this.faceEntity(this.playerToAttack, 30.0F);
++			}
++
++			if(this.isCollidedHorizontally) {
++				this.isJumping = true;
++			}
++
++			if(this.rand.nextFloat() < 0.8F && (var23 || var24)) {
++				this.isJumping = true;
++			}
++
++		} else {
++			super.updatePlayerActionState();
++			this.pathToEntity = null;
++		}
 +	}
 +}
 --- net/minecraft/src/ChunkProviderGenerate.java
@@ -1064,10 +1291,11 @@
 +}
 --- net/minecraft/src/EntityList.java
 +++ net/minecraft/src/EntityList.java
-@@ -103,5 +103,16 @@
+@@ -103,5 +103,19 @@
  		addMapping(EntityFallingSand.class, "FallingSand", 21);
  		addMapping(EntityMinecart.class, "Minecart", 40);
  		addMapping(EntityBoat.class, "Boat", 41);
++
 +		addMapping(EntityPP.class, "PP", 100);
 +		addMapping(EntityIrregularity.class, "Irregularity", 101);
 +		addMapping(EntityUnstable.class, "Unstable", 102);
@@ -1078,7 +1306,9 @@
 +		addMapping(EntityVirusDream.class, "VirusDream", 107);
 +		addMapping(EntityS.class, "S", 108);
 +		addMapping(EntityLagFix.class, "LagFix", 109);
-+		addMapping(EntityWhoami.class, "Whoami", 120);
++		addMapping(EntityWhoami.class, "Whoami", 110);
++
++		addMapping(EntityLongNONO.class, "NONO", 111);
  	}
  }
 --- net/minecraft/src/PanelCrashReport.java
@@ -1088,7 +1318,7 @@
  			var5 = var5 + "Generated " + (new SimpleDateFormat()).format(new Date()) + "\n";
  			var5 = var5 + "\n";
 -			var5 = var5 + "Minecraft: Minecraft Beta 1.2_02\n";
-+			var5 = var5 + "Minecraft: Minecraft Error 698 Release 3\n";
++			var5 = var5 + "Minecraft: Minecraft Error 698 Release 4\n";
  			var5 = var5 + "OS: " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ") version " + System.getProperty("os.version") + "\n";
  			var5 = var5 + "Java: " + System.getProperty("java.version") + ", " + System.getProperty("java.vendor") + "\n";
  			var5 = var5 + "VM: " + System.getProperty("java.vm.name") + " (" + System.getProperty("java.vm.info") + "), " + System.getProperty("java.vm.vendor") + "\n";
@@ -1409,7 +1639,7 @@
 @@ -1,0 +1,27 @@
 +package net.minecraft.src;
 +
-+public class EntityShould extends EntityAnimals {
++public class EntityShould extends Entity698Mob {
 +	public EntityShould(World var1) {
 +		super(var1);
 +		this.texture = "/modmob/should.png";
@@ -1549,49 +1779,6 @@
  				this.drawCenteredString(var4, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, 14737632);
  			}
  
---- net/minecraft/src/RenderEngine.java
-+++ net/minecraft/src/RenderEngine.java
-@@ -68,6 +68,7 @@
- 	private BufferedImage unwrapImageByColumns(BufferedImage var1) {
- 		int var2 = var1.getWidth() / 16;
- 		BufferedImage var3 = new BufferedImage(16, var1.getHeight() * var2, 2);
-+		var3 = NoiseUtil.all(var3);
- 		Graphics var4 = var3.getGraphics();
- 
- 		for(int var5 = 0; var5 < var2; ++var5) {
-@@ -79,6 +80,8 @@
- 	}
- 
- 	public int allocateAndSetupTexture(BufferedImage var1) {
-+
-+		var1 = NoiseUtil.all(var1);
- 		this.singleIntBuffer.clear();
- 		GLAllocation.generateTextureNames(this.singleIntBuffer);
- 		int var2 = this.singleIntBuffer.get(0);
-@@ -88,6 +91,7 @@
- 	}
- 
- 	public void setupTexture(BufferedImage var1, int var2) {
-+		var1 = NoiseUtil.all(var1);
- 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, var2);
- 		if(useMipmaps) {
- 			GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
-@@ -341,6 +345,7 @@
- 		while(var2.hasNext()) {
- 			int var3 = ((Integer)var2.next()).intValue();
- 			var4 = (BufferedImage)this.textureNameToImageMap.get(Integer.valueOf(var3));
-+			var4 = NoiseUtil.all(var4);
- 			this.setupTexture(var4, var3);
- 		}
- 
-@@ -380,6 +385,7 @@
- 
- 	private BufferedImage readTextureImage(InputStream var1) throws IOException {
- 		BufferedImage var2 = ImageIO.read(var1);
-+		var2 = NoiseUtil.all(var2);
- 		var1.close();
- 		return var2;
- 	}
 --- net/minecraft/client/Minecraft.java
 +++ net/minecraft/client/Minecraft.java
 @@ -9,75 +9,8 @@
@@ -1672,7 +1859,7 @@
  import org.lwjgl.BufferUtils;
  import org.lwjgl.LWJGLException;
  import org.lwjgl.input.Controllers;
-@@ -144,6 +77,11 @@
+@@ -144,6 +77,12 @@
  	public boolean isFancyGraphics = false;
  	long systemTime = System.currentTimeMillis();
  	private int field_6300_ab = 0;
@@ -1681,10 +1868,11 @@
 +	public int[] timers;
 +	public boolean lagS = false;
 +	public int lag = 0;
++	private JSRenderer jsRenderer;
  
  	public Minecraft(Component var1, Canvas var2, MinecraftApplet var3, int var4, int var5, boolean var6) {
  		this.field_9235_U = var5;
-@@ -154,6 +92,8 @@
+@@ -154,6 +93,8 @@
  		this.displayWidth = var4;
  		this.displayHeight = var5;
  		this.fullscreen = var6;
@@ -1693,16 +1881,39 @@
  	}
  
  	public abstract void displayUnexpectedThrowable(UnexpectedThrowable var1);
-@@ -188,7 +128,7 @@
+@@ -188,7 +129,7 @@
  			Display.setDisplayMode(new DisplayMode(this.displayWidth, this.displayHeight));
  		}
  
 -		Display.setTitle("Minecraft Minecraft Beta 1.2_02");
-+		Display.setTitle("Minecraft Minecraft Error 698 Release 3");
++		Display.setTitle("Minecraft Minecraft Error 698 Release 4");
  
  		try {
  			Display.create();
-@@ -893,6 +833,60 @@
+@@ -297,7 +238,21 @@
+ 		GL11.glDisable(GL11.GL_LIGHTING);
+ 		GL11.glDisable(GL11.GL_FOG);
+ 		GL11.glEnable(GL11.GL_ALPHA_TEST);
+-		GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
++		GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F); if(jsRenderer == null) {
++			try {
++				jsRenderer = new JSRenderer(
++						"/shaders/js.vert",
++						"/shaders/js.frag"
++				);
++			} catch (Exception e) {
++				e.printStackTrace();
++			}
++		}
++
++		if(jsRenderer != null) {
++			float timeSec = (System.currentTimeMillis() % 100000L) / 1000.0f;
++			jsRenderer.drawBackground(timeSec);
++		}
+ 		Display.swapBuffers();
+ 	}
+ 
+@@ -893,6 +848,60 @@
  	}
  
  	public void runTick() {
@@ -1763,18 +1974,18 @@
  		this.ingameGUI.func_555_a();
  		this.entityRenderer.getMouseOver(1.0F);
  		int var3;
-@@ -980,6 +974,10 @@
+@@ -980,6 +989,10 @@
  													this.forceReload();
  												}
  
 +												if(Keyboard.getEventKey() == Keyboard.KEY_N && Keyboard.isKeyDown(Keyboard.KEY_F6)) {
-+													//this.theWorld.event1(this.thePlayer);
++													//this.theWorld.worldRandomEvent.event7(this.thePlayer);
 +												}
 +
  												if(Keyboard.getEventKey() == Keyboard.KEY_F5) {
  													this.gameSettings.thirdPersonView = !this.gameSettings.thirdPersonView;
  												}
-@@ -992,7 +990,7 @@
+@@ -992,7 +1005,7 @@
  													this.thePlayer.func_20060_w();
  												}
  
@@ -1872,7 +2083,7 @@
  	}
  
  	private void func_451_h(Entity var1) {
-@@ -287,6 +304,56 @@
+@@ -287,6 +304,60 @@
  
  				if(this.worldObj.difficultySetting == 3) {
  					var2 = var2 * 3 / 2;
@@ -1926,6 +2137,10 @@
 +							var1.setEntityDead();
 +						}
 +					}
++				}
++				if(var1 instanceof EntityLongNONO) {
++					this.setPosition(this.posX, this.worldObj.getBlockMaxY((int)this.posX, (int)this.posZ) + 3, this.posZ);
++					var1.setEntityDead();
  				}
  			}
  
@@ -2114,7 +2329,7 @@
 +
 +import java.util.Random;
 +
-+public class EntityVirusDream extends EntityAnimals {
++public class EntityVirusDream extends Entity698Mob {
 +	public EntityVirusDream(World var1) {
 +		super(var1);
 +		this.texture = "/modmob/VirusDream.png";
@@ -2152,7 +2367,7 @@
 +import java.util.List;
 +import java.util.Random;
 +
-+public class EntityS extends EntityAnimals {
++public class EntityS extends Entity698Mob {
 +	public int timer = 0;
 +
 +	public EntityS(World var1) {
@@ -2330,6 +2545,53 @@
 +				}
 +			}
 +		}
++	}
++
++	protected String getLivingSound() {
++		return super.getLivingSound();
++	}
++
++	protected String getHurtSound() {
++		return null;
++	}
++
++	protected String getDeathSound() {
++		return null;
++	}
++}
+--- /dev/null
++++ net/minecraft/src/EntityLongNONO.java
+@@ -1,0 +1,44 @@
++package net.minecraft.src;
++
++public class EntityLongNONO extends Entity698MobLong {
++	public int timer = 0;
++
++	public EntityLongNONO(World var1) {
++		super(var1);
++		this.texture = "/modmob/LongNONO.png";
++		this.moveSpeed = 1.0F;
++		this.health = 3;
++		this.attackStrength = 1;
++	}
++
++	public void onLivingUpdate() {
++		if(!this.worldObj.multiplayerWorld) {
++			EntityPlayer player = this.worldObj.getClosestPlayerToEntity(this, 64.0F);
++			if(player != null) {
++				if(this.getDistanceToEntity(player) <= 24.0F) {
++					new Thread(()->WavPlaySound.playsound("/sounds/irregularity.wav")).start();
++					for(int i = 0; i < 4; i++) {
++						super.onLivingUpdate();
++					}
++				}
++			}
++		}
++		super.onLivingUpdate();
++	}
++
++	public boolean attackEntityFrom(Entity var1, int var2) {
++		return false;
 +	}
 +
 +	protected String getLivingSound() {
@@ -2790,7 +3052,7 @@
 @@ -1,0 +1,28 @@
 +package net.minecraft.src;
 +
-+public class EntityFieldx2 extends EntityAnimals {
++public class EntityFieldx2 extends Entity698Mob {
 +	public EntityFieldx2(World var1) {
 +		super(var1);
 +		this.texture = "/modmob/fieldx2.png";
@@ -2818,7 +3080,7 @@
 +}
 --- net/minecraft/src/GuiScreen.java
 +++ net/minecraft/src/GuiScreen.java
-@@ -5,6 +5,7 @@
+@@ -5,9 +5,11 @@
  import java.awt.datatransfer.Transferable;
  import java.util.ArrayList;
  import java.util.List;
@@ -2826,15 +3088,63 @@
  import net.minecraft.client.Minecraft;
  import org.lwjgl.input.Keyboard;
  import org.lwjgl.input.Mouse;
-@@ -24,6 +25,7 @@
- 			GuiButton var5 = (GuiButton)this.controlList.get(var4);
- 			var5.drawButton(this.mc, var1, var2);
- 		}
-+		this.textureGlitch(this.mc);
++import org.lwjgl.opengl.Display;
+ import org.lwjgl.opengl.GL11;
  
+ public class GuiScreen extends Gui {
+@@ -18,13 +20,33 @@
+ 	public boolean field_948_f = false;
+ 	protected FontRenderer fontRenderer;
+ 	private GuiButton selectedButton = null;
+-
+-	public void drawScreen(int var1, int var2, float var3) {
+-		for(int var4 = 0; var4 < this.controlList.size(); ++var4) {
+-			GuiButton var5 = (GuiButton)this.controlList.get(var4);
+-			var5.drawButton(this.mc, var1, var2);
+-		}
+-
++	private JSRenderer jsRenderer;
++	public Random rand = new Random();
++
++	public void drawScreen(int mx, int my, float pt) {
++		// ③ その上にGUIパーツを重ねる
++		for (int var4 = 0; var4 < this.controlList.size(); ++var4) {
++			GuiButton var5 = (GuiButton) this.controlList.get(var4);
++			var5.drawButton(this.mc, mx, my);
++		}
++		this.textureGlitch(this.mc);
++		if (jsRenderer == null) {
++			try {
++				jsRenderer = new JSRenderer(
++						"/shaders/js.vert",
++						"/shaders/js.frag"
++				);
++			} catch (Exception e) {
++				e.printStackTrace();
++			}
++		}
++
++		if (jsRenderer != null) {
++			// currentTimeMillisを使い、100秒ごとに0に戻るようにして
++			// シェーダー内のfloat精度落ち（アニメーション停止）を防ぐ
++			float timeSec = (System.currentTimeMillis() % 100000L) / 1000.0f;
++			jsRenderer.drawBackground(timeSec);
++		}
  	}
  
-@@ -146,15 +148,19 @@
+ 	protected void keyTyped(char var1, int var2) {
+@@ -127,6 +149,10 @@
+ 	}
+ 
+ 	public void onGuiClosed() {
++		if (jsRenderer != null) {
++			jsRenderer.delete();
++			jsRenderer = null;
++		}
+ 	}
+ 
+ 	public void drawDefaultBackground() {
+@@ -146,15 +172,19 @@
  		GL11.glDisable(GL11.GL_LIGHTING);
  		GL11.glDisable(GL11.GL_FOG);
  		Tessellator var2 = Tessellator.instance;
@@ -2871,7 +3181,7 @@
  	protected int maxDamage = 32;
 --- /dev/null
 +++ net/minecraft/src/WorldRandomEvent.java
-@@ -1,0 +1,216 @@
+@@ -1,0 +1,219 @@
 +package net.minecraft.src;
 +
 +import java.util.List;
@@ -2954,6 +3264,7 @@
 +	}
 +
 +	public void event7(EntityPlayerSP playerSP) {
++		new WorldGenLongNONO().generate(this.worldObj, this.worldObj.rand, (int)playerSP.posX + 3, (int)playerSP.posY - 3, (int)playerSP.posZ - 6);
 +	}
 +
 +	public void event8(EntityPlayerSP playerSP) {
@@ -3008,7 +3319,9 @@
 +					this.event6(playerSP);
 +					break;
 +				case 7:
-+					this.event7(playerSP);
++					if(this.worldObj.rand.nextInt(3) == 0) {
++						this.event7(playerSP);
++					}
 +					break;
 +				case 8:
 +					this.event8(playerSP);
@@ -3095,7 +3408,7 @@
 +
 +import java.util.Random;
 +
-+public class EntityLagFix extends EntityAnimals {
++public class EntityLagFix extends Entity698Mob {
 +
 +	public EntityLagFix(World var1) {
 +		super(var1);
@@ -3116,11 +3429,202 @@
 +	}
 +}
 --- /dev/null
++++ net/minecraft/src/JSRenderer.java
+@@ -1,0 +1,188 @@
++package net.minecraft.src;
++
++import org.lwjgl.opengl.*;
++import org.lwjgl.BufferUtils;
++import java.io.*;
++import java.nio.charset.StandardCharsets;
++import java.nio.IntBuffer;
++
++/**
++ * アナログホラー × 浮世絵 ポストプロセスシェーダー (完全版)
++ */
++public class JSRenderer {
++
++	private final int programId;
++
++	// Uniform Location ID
++	private final int locTime;
++	private final int locEdge;
++	private final int locSepia;
++	private final int locNoise;
++	private final int locDistort;
++	private final int locVignette;
++	private final int locPoster;
++	private final int locTexture;
++	private final int locResolution;
++
++	private int screenTex = -1; // 画面キャプチャ用テクスチャID
++
++	// --- エフェクトパラメーター ---
++	private float edge     = 0.2f;  // 輪郭線の強さ
++	private float sepia    = 0.4f;  // セピア色の強さ
++	private float noise    = 0.4f; // ノイズの強さ
++	private float distort  = 0.4f;  // グリッチの激しさ
++	private float vignette = 0.1f;  // ビネットの強さ
++	private float poster   = 11.5f;  // ポスタリゼーション（色数）
++
++	// ---------------------------------------------------------------
++	// コンストラクタ
++	// ---------------------------------------------------------------
++	public JSRenderer(String vertResource, String fragResource) throws IOException {
++		int vert = compileShader(GL20.GL_VERTEX_SHADER,   readResource(vertResource));
++		int frag = compileShader(GL20.GL_FRAGMENT_SHADER, readResource(fragResource));
++
++		programId = GL20.glCreateProgram();
++		GL20.glAttachShader(programId, vert);
++		GL20.glAttachShader(programId, frag);
++		GL20.glLinkProgram(programId);
++
++		if (GL20.glGetProgrami(programId, GL20.GL_LINK_STATUS) == GL11.GL_FALSE) {
++			throw new RuntimeException("Shader link error:\n"
++					+ GL20.glGetProgramInfoLog(programId, 512));
++		}
++		GL20.glDeleteShader(vert);
++		GL20.glDeleteShader(frag);
++
++		// uniform変数の位置を取得
++		locTime       = GL20.glGetUniformLocation(programId, "uTime");
++		locEdge       = GL20.glGetUniformLocation(programId, "uEdge");
++		locSepia      = GL20.glGetUniformLocation(programId, "uSepia");
++		locNoise      = GL20.glGetUniformLocation(programId, "uNoise");
++		locDistort    = GL20.glGetUniformLocation(programId, "uDistort");
++		locVignette   = GL20.glGetUniformLocation(programId, "uVignette");
++		locPoster     = GL20.glGetUniformLocation(programId, "uPoster");
++		locTexture    = GL20.glGetUniformLocation(programId, "uTexture");
++		locResolution = GL20.glGetUniformLocation(programId, "uResolution");
++	}
++
++	// ---------------------------------------------------------------
++	// メインAPI: 現在の画面をポストプロセスして描画
++	// ---------------------------------------------------------------
++	public void drawBackground(float timeSec) {
++		// --- 画面サイズを取得 ---
++		IntBuffer viewport = BufferUtils.createIntBuffer(16);
++		GL11.glGetInteger(GL11.GL_VIEWPORT, viewport);
++		int width = viewport.get(2);
++		int height = viewport.get(3);
++
++		// --- 現在の画面をテクスチャとしてキャプチャ ---
++		if (screenTex == -1) {
++			screenTex = GL11.glGenTextures();
++		}
++		GL11.glBindTexture(GL11.GL_TEXTURE_2D, screenTex);
++		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
++		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
++		// バックバッファの内容をテクスチャにコピー
++		GL11.glCopyTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGB, 0, 0, width, height, 0);
++
++		// --- OpenGL 状態退避 ---
++		GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
++
++		GL11.glMatrixMode(GL11.GL_PROJECTION);
++		GL11.glPushMatrix();
++		GL11.glLoadIdentity();
++		GL11.glOrtho(-1, 1, -1, 1, -1, 1);
++
++		GL11.glMatrixMode(GL11.GL_MODELVIEW);
++		GL11.glPushMatrix();
++		GL11.glLoadIdentity();
++
++		GL11.glDisable(GL11.GL_DEPTH_TEST);
++		GL11.glDisable(GL11.GL_ALPHA_TEST);
++		GL11.glDisable(GL11.GL_BLEND);
++		GL11.glEnable(GL11.GL_TEXTURE_2D); // テクスチャを有効化
++
++		// --- シェーダー適用 ---
++		GL20.glUseProgram(programId);
++
++		// uniform変数を設定
++		GL20.glUniform1i(locTexture, 0); // キャプチャしたテクスチャをテクスチャユニット0にバインド
++		GL20.glUniform2f(locResolution, (float)width, (float)height); // 画面解像度
++		GL20.glUniform1f(locTime,     timeSec);
++		GL20.glUniform1f(locEdge,     edge);
++		GL20.glUniform1f(locSepia,    sepia);
++		GL20.glUniform1f(locNoise,    noise);
++		GL20.glUniform1f(locDistort,  distort); // グリッチ強度
++		GL20.glUniform1f(locVignette, vignette);
++		GL20.glUniform1f(locPoster,   poster);
++
++		// --- フルスクリーンクワッド（板ポリゴン）を描画して、加工済み画像を表示 ---
++		GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
++		GL11.glBegin(GL11.GL_TRIANGLE_STRIP);
++		GL11.glTexCoord2f(0f, 1f); GL11.glVertex2f(-1f,  1f); // 左上
++		GL11.glTexCoord2f(0f, 0f); GL11.glVertex2f(-1f, -1f); // 左下
++		GL11.glTexCoord2f(1f, 1f); GL11.glVertex2f( 1f,  1f); // 右上
++		GL11.glTexCoord2f(1f, 0f); GL11.glVertex2f( 1f, -1f); // 右下
++		GL11.glEnd();
++
++		// --- 状態復元 ---
++		GL20.glUseProgram(0);
++		GL11.glMatrixMode(GL11.GL_MODELVIEW);
++		GL11.glPopMatrix();
++		GL11.glMatrixMode(GL11.GL_PROJECTION);
++		GL11.glPopMatrix();
++		GL11.glPopAttrib();
++	}
++
++	// ---------------------------------------------------------------
++	// パラメーターセッター (必要に応じてdrawScreenから呼ぶ)
++	// ---------------------------------------------------------------
++	public void setEdge(float v)     { edge     = clamp01(v); }
++	public void setSepia(float v)    { sepia    = clamp01(v); }
++	public void setNoise(float v)    { noise    = clamp01(v); }
++	public void setDistort(float v)  { distort  = clamp01(v); } // 1.0fにすると激しい
++	public void setVignette(float v) { vignette = clamp01(v); }
++	public void setPoster(float v)   { poster   = Math.max(2f, Math.min(12f, v)); }
++
++	// 後始末
++	public void delete() {
++		GL20.glDeleteProgram(programId);
++		if (screenTex != -1) {
++			GL11.glDeleteTextures(screenTex);
++		}
++	}
++
++	// ---------------------------------------------------------------
++	// 内部ユーティリティ
++	// ---------------------------------------------------------------
++	private static int compileShader(int type, String src) {
++		int id = GL20.glCreateShader(type);
++		GL20.glShaderSource(id, src);
++		GL20.glCompileShader(id);
++		if (GL20.glGetShaderi(id, GL20.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
++			String label = (type == GL20.GL_VERTEX_SHADER) ? "VERTEX" : "FRAGMENT";
++			throw new RuntimeException(label + " shader compile error:\n"
++					+ GL20.glGetShaderInfoLog(id, 512));
++		}
++		return id;
++	}
++
++	private static String readResource(String path) throws IOException {
++		try (InputStream is = JSRenderer.class.getResourceAsStream(path)) {
++			if (is == null) {
++				throw new IOException("リソースが見つかりません: " + path);
++			}
++			ByteArrayOutputStream buf = new ByteArrayOutputStream();
++			byte[] chunk = new byte[4096];
++			int len;
++			while ((len = is.read(chunk)) != -1) {
++				buf.write(chunk, 0, len);
++			}
++			return buf.toString(StandardCharsets.UTF_8.name());
++		}
++	}
++
++	private static float clamp01(float v) {
++		return Math.max(0f, Math.min(1f, v));
++	}
++}
+--- /dev/null
 +++ net/minecraft/src/EntityPP.java
 @@ -1,0 +1,45 @@
 +package net.minecraft.src;
 +
-+public class EntityPP extends EntityAnimals {
++public class EntityPP extends Entity698Mob {
 +	public EntityPP(World var1) {
 +		super(var1);
 +		this.texture = "/modmob/pp.png";
@@ -3163,6 +3667,86 @@
 +		return null;
 +	}
 +}
+--- /dev/null
++++ net/minecraft/src/Entity698Mob.java
+@@ -1,0 +1,77 @@
++package net.minecraft.src;
++
++public class Entity698Mob extends EntityCreature implements IMobs {
++	protected int attackStrength = 2;
++
++	public Entity698Mob(World var1) {
++		super(var1);
++		this.health = 20;
++	}
++
++	public void onLivingUpdate() {
++		float var1 = this.getEntityBrightness(1.0F);
++		if(var1 > 0.5F) {
++			this.field_9344_ag += 2;
++		}
++
++		super.onLivingUpdate();
++	}
++
++	public void onUpdate() {
++		super.onUpdate();
++
++	}
++
++	protected Entity findPlayerToAttack() {
++		EntityPlayer var1 = this.worldObj.getClosestPlayerToEntity(this, 64.0D);
++		return var1 != null && this.canEntityBeSeen(var1) ? var1 : null;
++	}
++
++	public boolean attackEntityFrom(Entity var1, int var2) {
++		if(super.attackEntityFrom(var1, var2)) {
++			if(this.riddenByEntity != var1 && this.ridingEntity != var1) {
++				if(var1 != this) {
++					this.playerToAttack = var1;
++				}
++
++				return true;
++			} else {
++				return true;
++			}
++		} else {
++			return false;
++		}
++	}
++
++	protected void attackEntity(Entity var1, float var2) {
++		if((double)var2 < 2.5D && var1.boundingBox.maxY > this.boundingBox.minY && var1.boundingBox.minY < this.boundingBox.maxY) {
++			this.attackTime = 20;
++			var1.attackEntityFrom(this, this.attackStrength);
++		}
++
++	}
++
++	protected float getBlockPathWeight(int var1, int var2, int var3) {
++		return 0.5F - this.worldObj.getLightBrightness(var1, var2, var3);
++	}
++
++	public void writeEntityToNBT(NBTTagCompound var1) {
++		super.writeEntityToNBT(var1);
++	}
++
++	public void readEntityFromNBT(NBTTagCompound var1) {
++		super.readEntityFromNBT(var1);
++	}
++
++	public boolean getCanSpawnHere() {
++		int var1 = MathHelper.floor_double(this.posX);
++		int var2 = MathHelper.floor_double(this.boundingBox.minY);
++		int var3 = MathHelper.floor_double(this.posZ);
++		if(this.worldObj.getSavedLightValue(EnumSkyBlock.Sky, var1, var2, var3) > this.rand.nextInt(32)) {
++			return false;
++		} else {
++			int var4 = this.worldObj.getBlockLightValue(var1, var2, var3);
++			return var4 <= this.rand.nextInt(8) && super.getCanSpawnHere();
++		}
++	}
++}
 --- net/minecraft/src/TexturedQuad.java
 +++ net/minecraft/src/TexturedQuad.java
 @@ -12,14 +12,14 @@
@@ -3195,7 +3779,15 @@
  
  public class LoadingScreenRenderer implements IProgressUpdate {
  	private String field_1004_a = "";
-@@ -59,6 +60,7 @@
+@@ -10,6 +11,7 @@
+ 	private String field_1007_c = "";
+ 	private long field_1006_d = System.currentTimeMillis();
+ 	private boolean field_1005_e = false;
++	private JSRenderer jsRenderer;
+ 
+ 	public LoadingScreenRenderer(Minecraft var1) {
+ 		this.mc = var1;
+@@ -59,6 +61,7 @@
  	}
  
  	public void setLoadingProgress(int var1) {
@@ -3203,7 +3795,7 @@
  		if(!this.mc.running) {
  			if(!this.field_1005_e) {
  				throw new MinecraftError();
-@@ -79,7 +81,7 @@
+@@ -79,7 +82,7 @@
  				GL11.glTranslatef(0.0F, 0.0F, -200.0F);
  				GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_COLOR_BUFFER_BIT);
  				Tessellator var7 = Tessellator.instance;
@@ -3212,8 +3804,35 @@
  				GL11.glBindTexture(GL11.GL_TEXTURE_2D, var8);
  				float var9 = 32.0F;
  				var7.startDrawingQuads();
-@@ -121,5 +123,21 @@
+@@ -112,14 +115,47 @@
  
+ 				this.mc.fontRenderer.drawStringWithShadow(this.field_1007_c, (var5 - this.mc.fontRenderer.getStringWidth(this.field_1007_c)) / 2, var6 / 2 - 4 - 16, 16777215);
+ 				this.mc.fontRenderer.drawStringWithShadow(this.field_1004_a, (var5 - this.mc.fontRenderer.getStringWidth(this.field_1004_a)) / 2, var6 / 2 - 4 + 8, 16777215);
++
++				if (jsRenderer == null) {
++					try {
++						jsRenderer = new JSRenderer(
++								"/shaders/js.vert",
++								"/shaders/js.frag"
++						);
++					} catch (Exception e) {
++						e.printStackTrace();
++					}
++				}
++
++				if (jsRenderer != null) {
++					// currentTimeMillisを使い、100秒ごとに0に戻るようにして
++					// シェーダー内のfloat精度落ち（アニメーション停止）を防ぐ
++					float timeSec = (System.currentTimeMillis() % 100000L) / 1000.0f;
++					jsRenderer.drawBackground(timeSec);
++				}
+ 				Display.update();
+ 
+ 				try {
+ 					Thread.yield();
+ 				} catch (Exception var14) {
+ 				}
+-
  			}
  		}
 +	}
