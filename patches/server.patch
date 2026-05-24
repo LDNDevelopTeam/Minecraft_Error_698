@@ -1426,7 +1426,7 @@
 +}
 --- /dev/null
 +++ net/minecraft/src/Entity698Mob.java
-@@ -1,0 +1,76 @@
+@@ -1,0 +1,60 @@
 +package net.minecraft.src;
 +
 +public class Entity698Mob extends EntityCreature implements IMobs {
@@ -1479,28 +1479,12 @@
 +
 +	}
 +
-+	protected float getBlockPathWeight(int var1, int var2, int var3) {
-+		return 0.5F - this.worldObj.getLightBrightness(var1, var2, var3);
-+	}
-+
 +	public void writeEntityToNBT(NBTTagCompound var1) {
 +		super.writeEntityToNBT(var1);
 +	}
 +
 +	public void readEntityFromNBT(NBTTagCompound var1) {
 +		super.readEntityFromNBT(var1);
-+	}
-+
-+	public boolean getCanSpawnHere() {
-+		int var1 = MathHelper.floor_double(this.posX);
-+		int var2 = MathHelper.floor_double(this.boundingBox.minY);
-+		int var3 = MathHelper.floor_double(this.posZ);
-+		if(this.worldObj.getSavedLightValue(EnumSkyBlock.Sky, var1, var2, var3) > this.rand.nextInt(32)) {
-+			return false;
-+		} else {
-+			int var4 = this.worldObj.getBlockLightValue(var1, var2, var3);
-+			return var4 <= this.rand.nextInt(8) && super.getCanSpawnHere();
-+		}
 +	}
 +}
 --- /dev/null
