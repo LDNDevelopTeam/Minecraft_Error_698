@@ -1011,6 +1011,17 @@
  			GL11.glTranslatef((float)var2 + 0.5F, (float)var4 + 12.0F / 16.0F * var10, (float)var6 + 0.5F);
  			float var11 = (float)(var1.getBlockMetadata() * 360) / 16.0F;
  			GL11.glRotatef(-var11, 0.0F, 1.0F, 0.0F);
+--- net/minecraft/src/WorldProvider.java
++++ net/minecraft/src/WorldProvider.java
+@@ -19,7 +19,7 @@
+ 	}
+ 
+ 	protected void generateLightBrightnessTable() {
+-		float var1 = 0.05F;
++		float var1 = 0.75F;
+ 
+ 		for(int var2 = 0; var2 <= 15; ++var2) {
+ 			float var3 = 1.0F - (float)var2 / 15.0F;
 --- /dev/null
 +++ net/minecraft/src/ModelPP.java
 @@ -1,0 +1,68 @@
