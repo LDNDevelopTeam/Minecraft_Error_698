@@ -84,6 +84,9 @@ Minecraft Error 698
 - Keisuke Aiso(LinkFactory)<br>
 ※ Keisuke Aisoさんに許可をいただきました。ありがとうございます。
 
+### 画像
+* https://x.com/aiso_link/status/1857423914324107590
+
 ありがとうございます！  
 
 > 要素はプレイしてからのお楽しみです。  
