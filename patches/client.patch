@@ -167,11 +167,11 @@
  
  	public EntityRenderer(Minecraft var1) {
  		this.mc = var1;
-@@ -314,6 +316,23 @@
+@@ -314,9 +316,32 @@
  			int var11 = var9 - Mouse.getY() * var9 / this.mc.displayHeight - 1;
  			if(this.mc.theWorld != null) {
  				this.renderWorld(var1);
-+				if (jsRenderer == null) {
++				if(jsRenderer == null) {
 +					try {
 +						jsRenderer = new JSRenderer(
 +								"/shaders/js.vert",
@@ -182,7 +182,7 @@
 +					}
 +				}
 +				// ② 【一番最初に】浮世絵ホラー背景を描く
-+				if (jsRenderer != null) {
++				if(jsRenderer != null) {
 +					// currentTimeMillisを使い、100秒ごとに0に戻るようにして
 +					// シェーダー内のfloat精度落ち（アニメーション停止）を防ぐ
 +					float timeSec = (System.currentTimeMillis() % 100000L) / 1000.0f;
@@ -191,7 +191,16 @@
  				if(!Keyboard.isKeyDown(Keyboard.KEY_F1)) {
  					this.mc.ingameGUI.renderGameOverlay(var1, this.mc.currentScreen != null, var10, var11);
  				}
-@@ -361,7 +380,7 @@
++				if(this.mc.timerS[4]) {
++					ScaledResolution varX0 = new ScaledResolution(this.mc.displayWidth, this.mc.displayHeight);
++					int varX1 = varX0.getScaledWidth();
++					int varX2 = varX0.getScaledHeight();
++					this.mc.ingameGUI.renderNONO(varX1, varX2, new Random().nextFloat() * 3 + 1);
++				}
+ 			} else {
+ 				GL11.glViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
+ 				GL11.glMatrixMode(GL11.GL_PROJECTION);
+@@ -361,7 +386,7 @@
  			}
  
  			GL11.glViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
@@ -200,6 +209,19 @@
  			GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_COLOR_BUFFER_BIT);
  			GL11.glEnable(GL11.GL_CULL_FACE);
  			this.setupCameraTransform(var1, var15);
+--- net/minecraft/src/EnumOptionsMappingHelper.java
++++ net/minecraft/src/EnumOptionsMappingHelper.java
+@@ -23,6 +23,10 @@
+ 			enumOptionsMappingHelperArray[EnumOptions.LIMIT_FRAMERATE.ordinal()] = 4;
+ 		} catch (NoSuchFieldError var1) {
+ 		}
++		try {
++			enumOptionsMappingHelperArray[EnumOptions.NONO.ordinal()] = 5;
++		} catch (NoSuchFieldError var4) {
++		}
+ 
+ 	}
+ }
 --- /dev/null
 +++ net/minecraft/src/RenderIregularity.java
 @@ -1,0 +1,10 @@
@@ -271,7 +293,7 @@
 +		 this.drawCenteredString(this.fontRenderer, this.splashText, 0, -8, 16776960);
 +		 GL11.glPopMatrix();
 +		 */
-+		this.drawString(this.fontRenderer, "Minecraft \u00A74Error 698 Release 4", 2, 2, 5263440);
++		this.drawString(this.fontRenderer, "Minecraft \u00A74Error 698 r5", 2, 2, 5263440);
 +		String var6 = "This version is not official from Mojang. It's a creation. Do not redistribute!";
  		this.drawString(this.fontRenderer, var6, this.width - this.fontRenderer.getStringWidth(var6) - 2, this.height - 10, 16777215);
  		super.drawScreen(var1, var2, var3);
@@ -415,17 +437,17 @@
  					var18 = var6 / 2 + 91 - var16 * 8 - 9;
  					if(var16 * 2 + 1 < var15) {
 -						this.drawTexturedModalRect(var18, var17, 34, 9, 9, 9);
-+						this.drawTexturedModalRect(var18 + new Random().nextInt(32) - 16, var17, 34, 9 + new Random().nextInt(32) - 16, 9, 9);
++						this.drawTexturedModalRect(var18 + this.rand.nextInt(32) - 16, var17, 34, 9 + this.rand.nextInt(32) - 16, 9, 9);
  					}
  
  					if(var16 * 2 + 1 == var15) {
 -						this.drawTexturedModalRect(var18, var17, 25, 9, 9, 9);
-+						this.drawTexturedModalRect(var18 + new Random().nextInt(32) - 16, var17, 25 + new Random().nextInt(32) - 16, 9, 9, 9);
++						this.drawTexturedModalRect(var18 + this.rand.nextInt(32) - 16, var17, 25 + this.rand.nextInt(32) - 16, 9, 9, 9);
  					}
  
  					if(var16 * 2 + 1 > var15) {
 -						this.drawTexturedModalRect(var18, var17, 16, 9, 9, 9);
-+						this.drawTexturedModalRect(var18 + new Random().nextInt(32) - 16, var17, 16 + new Random().nextInt(32) - 16, 9, 9, 9);
++						this.drawTexturedModalRect(var18 + this.rand.nextInt(32) - 16, var17, 16 + this.rand.nextInt(32) - 16, 9, 9, 9);
  					}
  				}
  
@@ -434,27 +456,27 @@
  				}
  
 -				this.drawTexturedModalRect(var19, var17, 16 + var27 * 9, 0, 9, 9);
-+				this.drawTexturedModalRect(var19 + new Random().nextInt(32) - 16, var17, 16 + var27 * 9 + new Random().nextInt(32) - 16, 0, 9, 9);
++				this.drawTexturedModalRect(var19 + this.rand.nextInt(32) - 16, var17, 16 + var27 * 9 + this.rand.nextInt(32) - 16, 0, 9, 9);
  				if(var12) {
  					if(var16 * 2 + 1 < var14) {
 -						this.drawTexturedModalRect(var19, var17, 70, 0, 9, 9);
-+						this.drawTexturedModalRect(var19 + new Random().nextInt(32) - 16, var17, 70 + new Random().nextInt(32) - 16, 0, 9, 9);
++						this.drawTexturedModalRect(var19 + this.rand.nextInt(32) - 16, var17, 70 + this.rand.nextInt(32) - 16, 0, 9, 9);
  					}
  
  					if(var16 * 2 + 1 == var14) {
 -						this.drawTexturedModalRect(var19, var17, 79, 0, 9, 9);
-+						this.drawTexturedModalRect(var19 + new Random().nextInt(32) - 16, var17, 79 + new Random().nextInt(32) - 16, 0, 9, 9);
++						this.drawTexturedModalRect(var19 + this.rand.nextInt(32) - 16, var17, 79 + this.rand.nextInt(32) - 16, 0, 9, 9);
  					}
  				}
  
  				if(var16 * 2 + 1 < var13) {
 -					this.drawTexturedModalRect(var19, var17, 52, 0, 9, 9);
-+					this.drawTexturedModalRect(var19 + new Random().nextInt(32) - 16, var17, 52 + new Random().nextInt(32) - 16, 0, 9, 9);
++					this.drawTexturedModalRect(var19 + this.rand.nextInt(32) - 16, var17, 52 + this.rand.nextInt(32) - 16, 0, 9, 9);
  				}
  
  				if(var16 * 2 + 1 == var13) {
 -					this.drawTexturedModalRect(var19, var17, 61, 0, 9, 9);
-+					this.drawTexturedModalRect(var19 + new Random().nextInt(32) - 16, var17, 61 + new Random().nextInt(32) - 16, 0, 9, 9);
++					this.drawTexturedModalRect(var19 + this.rand.nextInt(32) - 16, var17, 61 + this.rand.nextInt(32) - 16, 0, 9, 9);
  				}
  			}
  
@@ -463,10 +485,10 @@
  				for(var18 = 0; var18 < var16 + var17; ++var18) {
  					if(var18 < var16) {
 -						this.drawTexturedModalRect(var6 / 2 - 91 + var18 * 8, var7 - 32 - 9, 16, 18, 9, 9);
-+						this.drawTexturedModalRect(var6 / 2 - 91 + var18 * 8 + new Random().nextInt(32) - 16, var7 - 32 - 9, 16 + new Random().nextInt(32) - 16, 18, 9, 9);
++						this.drawTexturedModalRect(var6 / 2 - 91 + var18 * 8 + this.rand.nextInt(32) - 16, var7 - 32 - 9, 16 + this.rand.nextInt(32) - 16, 18, 9, 9);
  					} else {
 -						this.drawTexturedModalRect(var6 / 2 - 91 + var18 * 8, var7 - 32 - 9, 25, 18, 9, 9);
-+						this.drawTexturedModalRect(var6 / 2 - 91 + var18 * 8 + new Random().nextInt(32) - 16, var7 - 32 - 9, 25 + new Random().nextInt(32) - 16, 18, 9, 9);
++						this.drawTexturedModalRect(var6 / 2 - 91 + var18 * 8 + this.rand.nextInt(32) - 16, var7 - 32 - 9, 25 + this.rand.nextInt(32) - 16, 18, 9, 9);
  					}
  				}
  			}
@@ -475,7 +497,7 @@
  		String var23;
  		if(Keyboard.isKeyDown(Keyboard.KEY_F3)) {
 -			var8.drawStringWithShadow("Minecraft Beta 1.2_02 (" + this.mc.debug + ")", 2, 2, 16777215);
-+			var8.drawStringWithShadow("Minecraft \u00A74Error 698 Release 4\u00A7r (" + this.mc.debug + ")", 2, 2, 16777215);
++			var8.drawStringWithShadow("Minecraft \u00A74Error 698 r5\u00A7r (" + this.mc.debug + ")", 2, 2, 16777215);
  			var8.drawStringWithShadow(this.mc.func_6241_m(), 2, 12, 16777215);
  			var8.drawStringWithShadow(this.mc.func_6262_n(), 2, 22, 16777215);
  			var8.drawStringWithShadow(this.mc.func_6245_o(), 2, 32, 16777215);
@@ -484,11 +506,11 @@
  			this.drawString(var8, "z: " + this.mc.thePlayer.posZ, 2, 80, 14737632);
  		} else {
 -			var8.drawStringWithShadow("Minecraft Beta 1.2_02", 2, 2, 16777215);
-+			var8.drawStringWithShadow("Minecraft \u00A74Error 698 Release 4", 2, 2, 16777215);
++			var8.drawStringWithShadow("Minecraft \u00A74Error 698 r5", 2, 2, 16777215);
  		}
  
  		if(this.field_9419_j > 0) {
-@@ -235,6 +251,45 @@
+@@ -235,6 +251,88 @@
  		GL11.glPopMatrix();
  		GL11.glEnable(GL11.GL_ALPHA_TEST);
  		GL11.glDisable(GL11.GL_BLEND);
@@ -527,6 +549,49 @@
 +		var3.addVertexWithUV((double)var1, 0.0D, -90.0D, 1.0D, 0.0D);
 +		var3.addVertexWithUV(0.0D, 0.0D, -90.0D, 0.0D, 0.0D);
 +		var3.draw();
++		GL11.glDepthMask(true);
++		GL11.glEnable(GL11.GL_DEPTH_TEST);
++		GL11.glEnable(GL11.GL_ALPHA_TEST);
++		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
++	}
++
++	public void renderNONO(int var1, int var2, float scale) {
++		GL11.glDisable(GL11.GL_DEPTH_TEST);
++		GL11.glDepthMask(false);
++		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
++		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
++		GL11.glDisable(GL11.GL_ALPHA_TEST);
++		GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.mc.renderEngine.getTexture("/gui/NONO.png"));
++
++		// --- ここから拡大・中心原点化の処理 ---
++		GL11.glPushMatrix(); // 現在の行列状態を保存
++
++		// 画像の中心座標を計算
++		float centerX = var1 / 2.0F;
++		float centerY = var2 / 2.0F;
++
++		// 3. 元の位置（描画したい位置）に画面全体を戻す
++		GL11.glTranslatef(centerX, centerY, 0.0F);
++
++		// 2. 中心が原点になった状態で拡大する
++		GL11.glScalef(scale, scale, 1.0F);
++
++		// 1. 画像の中心が (0, 0) に来るようにマイナス方向にずらす
++		GL11.glTranslatef(-centerX, -centerY, 0.0F);
++		// -------------------------------------
++
++		Tessellator var3 = Tessellator.instance;
++		var3.startDrawingQuads();
++		var3.addVertexWithUV(0.0D, (double)var2, -90.0D, 0.0D, 1.0D);
++		var3.addVertexWithUV((double)var1, (double)var2, -90.0D, 1.0D, 1.0D);
++		var3.addVertexWithUV((double)var1, 0.0D, -90.0D, 1.0D, 0.0D);
++		var3.addVertexWithUV(0.0D, 0.0D, -90.0D, 0.0D, 0.0D);
++		var3.draw();
++
++		// --- 行列状態を元に戻す ---
++		GL11.glPopMatrix();
++		// --------------------------
++
 +		GL11.glDepthMask(true);
 +		GL11.glEnable(GL11.GL_DEPTH_TEST);
 +		GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -1344,7 +1409,7 @@
  			var5 = var5 + "Generated " + (new SimpleDateFormat()).format(new Date()) + "\n";
  			var5 = var5 + "\n";
 -			var5 = var5 + "Minecraft: Minecraft Beta 1.2_02\n";
-+			var5 = var5 + "Minecraft: Minecraft Error 698 Release 4\n";
++			var5 = var5 + "Minecraft: Minecraft Error 698 r5\n";
  			var5 = var5 + "OS: " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ") version " + System.getProperty("os.version") + "\n";
  			var5 = var5 + "Java: " + System.getProperty("java.version") + ", " + System.getProperty("java.vendor") + "\n";
  			var5 = var5 + "VM: " + System.getProperty("java.vm.name") + " (" + System.getProperty("java.vm.info") + "), " + System.getProperty("java.vm.vendor") + "\n";
@@ -1885,7 +1950,7 @@
  import org.lwjgl.BufferUtils;
  import org.lwjgl.LWJGLException;
  import org.lwjgl.input.Controllers;
-@@ -144,6 +77,12 @@
+@@ -144,6 +77,13 @@
  	public boolean isFancyGraphics = false;
  	long systemTime = System.currentTimeMillis();
  	private int field_6300_ab = 0;
@@ -1895,28 +1960,30 @@
 +	public boolean lagS = false;
 +	public int lag = 0;
 +	private JSRenderer jsRenderer;
++	public static Minecraft theMinecraft;
  
  	public Minecraft(Component var1, Canvas var2, MinecraftApplet var3, int var4, int var5, boolean var6) {
  		this.field_9235_U = var5;
-@@ -154,6 +93,8 @@
+@@ -154,6 +94,9 @@
  		this.displayWidth = var4;
  		this.displayHeight = var5;
  		this.fullscreen = var6;
 +		this.timerS = new boolean[20];
 +		this.timers = new int[20];
++		theMinecraft = this;
  	}
  
  	public abstract void displayUnexpectedThrowable(UnexpectedThrowable var1);
-@@ -188,7 +129,7 @@
+@@ -188,7 +131,7 @@
  			Display.setDisplayMode(new DisplayMode(this.displayWidth, this.displayHeight));
  		}
  
 -		Display.setTitle("Minecraft Minecraft Beta 1.2_02");
-+		Display.setTitle("Minecraft Minecraft Error 698 Release 4");
++		Display.setTitle("Minecraft Minecraft Error 698 r5");
  
  		try {
  			Display.create();
-@@ -297,7 +238,21 @@
+@@ -297,7 +240,21 @@
  		GL11.glDisable(GL11.GL_LIGHTING);
  		GL11.glDisable(GL11.GL_FOG);
  		GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -1939,7 +2006,7 @@
  		Display.swapBuffers();
  	}
  
-@@ -893,6 +848,60 @@
+@@ -893,6 +850,67 @@
  	}
  
  	public void runTick() {
@@ -1984,6 +2051,13 @@
 +				throw new Error("Hot Soup is Error.");
 +			}
 +		}
++		if(this.timerS[4]) {
++			this.timers[4]++;
++			if(this.timers[4] > 20 * 6) {
++				this.timers[4] = 0;
++				this.timerS[4] = false;
++			}
++		}
 +		if(this.lagS) {
 +			new Thread(()->WavPlaySound.playsound("/sounds/" + new Random().nextInt(3) + ".wav")).start();
 +			try {
@@ -2000,18 +2074,18 @@
  		this.ingameGUI.func_555_a();
  		this.entityRenderer.getMouseOver(1.0F);
  		int var3;
-@@ -980,6 +989,10 @@
+@@ -980,6 +998,10 @@
  													this.forceReload();
  												}
  
-+												if(Keyboard.getEventKey() == Keyboard.KEY_N && Keyboard.isKeyDown(Keyboard.KEY_F6)) {
-+													//this.theWorld.worldRandomEvent.event7(this.thePlayer);
++												if(Keyboard.getEventKey() == Keyboard.KEY_N && Keyboard.isKeyDown(Keyboard.KEY_F6) && this.gameSettings.nono && !this.isMultiplayerWorld()) {
++													this.theWorld.worldRandomEvent.event7(this.thePlayer);
 +												}
 +
  												if(Keyboard.getEventKey() == Keyboard.KEY_F5) {
  													this.gameSettings.thirdPersonView = !this.gameSettings.thirdPersonView;
  												}
-@@ -992,7 +1005,7 @@
+@@ -992,7 +1014,7 @@
  													this.thePlayer.func_20060_w();
  												}
  
@@ -2069,15 +2143,16 @@
 +}
 --- net/minecraft/src/EntityPlayer.java
 +++ net/minecraft/src/EntityPlayer.java
-@@ -1,6 +1,7 @@
+@@ -1,6 +1,8 @@
  package net.minecraft.src;
  
++import net.minecraft.client.Minecraft;
  import java.util.List;
 +import java.util.Random;
  
  public abstract class EntityPlayer extends EntityLiving {
  	public InventoryPlayer inventory = new InventoryPlayer(this);
-@@ -23,6 +24,8 @@
+@@ -23,6 +25,8 @@
  	public double field_20061_w;
  	private int damageRemainder = 0;
  	public EntityFish fishEntity = null;
@@ -2086,7 +2161,7 @@
  
  	public EntityPlayer(World var1) {
  		super(var1);
-@@ -152,7 +155,21 @@
+@@ -152,7 +156,21 @@
  				}
  			}
  		}
@@ -2109,7 +2184,7 @@
  	}
  
  	private void func_451_h(Entity var1) {
-@@ -287,6 +304,60 @@
+@@ -287,6 +305,62 @@
  
  				if(this.worldObj.difficultySetting == 3) {
  					var2 = var2 * 3 / 2;
@@ -2167,6 +2242,8 @@
 +				if(var1 instanceof EntityLongNONO) {
 +					this.setPosition(this.posX, this.worldObj.getBlockMaxY((int)this.posX, (int)this.posZ) + 3, this.posZ);
 +					var1.setEntityDead();
++					new Thread(()->WavPlaySound.playsound("/sounds/NONO.wav")).start();
++					Minecraft.theMinecraft.timerS[4] = true;
  				}
  			}
  
@@ -2453,7 +2530,7 @@
  
 --- net/minecraft/src/NetClientHandler.java
 +++ net/minecraft/src/NetClientHandler.java
-@@ -507,4 +507,93 @@
+@@ -507,4 +507,94 @@
  	public void func_21145_a(Packet54 var1) {
  		this.mc.theWorld.playNoteAt(var1.xLocation, var1.yLocation, var1.zLocation, var1.instrumentType, var1.pitch);
  	}
@@ -2504,6 +2581,7 @@
 +			this.mc.timerS[3] = true;
 +			break;
 +		case 22:
++			this.mc.timerS[4] = true;
 +			break;
 +		case 23:
 +			break;
@@ -2585,6 +2663,18 @@
 +		return null;
 +	}
 +}
+--- net/minecraft/src/EnumOptions.java
++++ net/minecraft/src/EnumOptions.java
+@@ -10,7 +10,8 @@
+ 	ANAGLYPH("options.anaglyph", false, true),
+ 	LIMIT_FRAMERATE("options.limitFramerate", false, true),
+ 	DIFFICULTY("options.difficulty", false, false),
+-	GRAPHICS("options.graphics", false, false);
++	GRAPHICS("options.graphics", false, false),
++	NONO("NONO", false, true);
+ 
+ 	private final boolean enumFloat;
+ 	private final boolean enumBoolean;
 --- /dev/null
 +++ net/minecraft/src/EntityLongNONO.java
 @@ -1,0 +1,44 @@
@@ -4107,7 +4197,15 @@
  	public boolean viewBobbing = true;
  	public boolean anaglyph = false;
  	public boolean limitFramerate = false;
-@@ -63,7 +64,7 @@
+@@ -37,6 +38,7 @@
+ 	public int difficulty = 2;
+ 	public boolean thirdPersonView = false;
+ 	public String lastServer = "";
++	public boolean nono = false;
+ 
+ 	public GameSettings(Minecraft var1, File var2) {
+ 		this.mc = var1;
+@@ -63,7 +65,7 @@
  
  	public void setOptionFloatValue(EnumOptions var1, float var2) {
  		if(var1 == EnumOptions.MUSIC) {
@@ -4116,7 +4214,7 @@
  			this.mc.sndManager.onSoundOptionsChanged();
  		}
  
-@@ -84,7 +85,7 @@
+@@ -84,7 +86,7 @@
  		}
  
  		if(var1 == EnumOptions.RENDER_DISTANCE) {
@@ -4125,6 +4223,45 @@
  		}
  
  		if(var1 == EnumOptions.VIEW_BOBBING) {
+@@ -109,6 +111,10 @@
+ 			this.mc.renderGlobal.loadRenderers();
+ 		}
+ 
++		if(var1 == EnumOptions.NONO) {
++			this.nono = !this.nono;
++		}
++
+ 		this.saveOptions();
+ 	}
+ 
+@@ -126,6 +132,8 @@
+ 			return this.anaglyph;
+ 		case 4:
+ 			return this.limitFramerate;
++		case 5:
++			return this.nono;
+ 		default:
+ 			return false;
+ 		}
+@@ -210,6 +218,10 @@
+ 					this.lastServer = var3[1];
+ 				}
+ 
++				if(var3[0].equals("NONO")) {
++					this.nono = var3[1].equals("true");
++				}
++
+ 				for(int var4 = 0; var4 < this.keyBindings.length; ++var4) {
+ 					if(var3[0].equals("key_" + this.keyBindings[var4].keyDescription)) {
+ 						this.keyBindings[var4].keyCode = Integer.parseInt(var3[1]);
+@@ -242,6 +254,7 @@
+ 			var1.println("fancyGraphics:" + this.fancyGraphics);
+ 			var1.println("skin:" + this.skin);
+ 			var1.println("lastServer:" + this.lastServer);
++			var1.println("NONO:" + this.nono);
+ 
+ 			for(int var2 = 0; var2 < this.keyBindings.length; ++var2) {
+ 				var1.println("key_" + this.keyBindings[var2].keyDescription + ":" + this.keyBindings[var2].keyCode);
 --- net/minecraft/src/WorldGenTaiga1.java
 +++ net/minecraft/src/WorldGenTaiga1.java
 @@ -67,7 +67,7 @@

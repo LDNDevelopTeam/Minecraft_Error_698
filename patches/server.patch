@@ -1709,7 +1709,7 @@
  		var1.start();
  		ConsoleLogManager.init();
 -		logger.info("Starting minecraft server version Beta 1.2_01");
-+		logger.info("Starting minecraft server version Error 698 r3");
++		logger.info("Starting minecraft server version Error 698 r5");
  		if(Runtime.getRuntime().maxMemory() / 1024L / 1024L < 512L) {
  			logger.warning("**** NOT ENOUGH RAM!");
  			logger.warning("To start the server with more ram, launch it as \"java -Xmx1024M -Xms1024M -jar minecraft_server.jar\"");
@@ -1828,11 +1828,10 @@
  	}
  
  	private void func_171_h(Entity var1) {
-@@ -269,6 +302,53 @@
- 
+@@ -270,6 +303,59 @@
  				if(this.worldObj.difficultySetting == 3) {
  					var2 = var2 * 3 / 2;
-+				}
+ 				}
 +			}
 +
 +
@@ -1879,9 +1878,16 @@
 +						((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(7));
 +						var1.setEntityDead();
 +					}
- 				}
++				}
++			}
++			if(var1 instanceof EntityLongNONO) {
++				this.setPosition(this.posX, this.worldObj.getBlockMaxY((int)this.posX, (int)this.posZ) + 3, this.posZ);
++				var1.setEntityDead();
++				((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet81Sound("/sounds/NONO.wav"));
++				((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(22));
  			}
  
+ 			return var2 == 0 ? false : super.attackEntityFrom(var1, var2);
 --- net/minecraft/src/Packet.java
 +++ net/minecraft/src/Packet.java
 @@ -108,6 +108,8 @@
