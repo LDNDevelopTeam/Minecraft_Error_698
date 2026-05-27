@@ -84,6 +84,9 @@ Minecraft Error 698
 - Keisuke Aiso (LinkFactory)<br>
 ※ I have received permission from Keisuke Aiso. Thank you very much.
 
+### Image
+* https://x.com/aiso_link/status/1857423914324107590
+
 Thank you very much!
 
 > The elements are best discovered by playing.
