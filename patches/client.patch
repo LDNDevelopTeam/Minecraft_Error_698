@@ -74,9 +74,9 @@
 +					if(new Random().nextInt(18) == 0) {
 +						((EntityPlayerSP)var3).mc.timerS[3] = true;
 +					} else {
-+						var3.spawnX = (int)var3.posX;
-+						var3.spawnY = (int)var3.posY;
-+						var3.spawnZ = (int)var3.posZ;
++						var2.spawnX = (int)var3.posX;
++						var2.spawnY = (int)var3.posY;
++						var2.spawnZ = (int)var3.posZ;
 +						Minecraft.theMinecraft.ingameGUI.addChatMessage("Set Spawnono");
 +					}
 +				}
@@ -299,7 +299,7 @@
 +		 this.drawCenteredString(this.fontRenderer, this.splashText, 0, -8, 16776960);
 +		 GL11.glPopMatrix();
 +		 */
-+		this.drawString(this.fontRenderer, "Minecraft \u00A74Error 698 r5", 2, 2, 5263440);
++		this.drawString(this.fontRenderer, "Minecraft \u00A74Error 698 r6", 2, 2, 5263440);
 +		String var6 = "This version is not official from Mojang. It's a creation. Do not redistribute!";
  		this.drawString(this.fontRenderer, var6, this.width - this.fontRenderer.getStringWidth(var6) - 2, this.height - 10, 16777215);
  		super.drawScreen(var1, var2, var3);
@@ -503,7 +503,7 @@
  		String var23;
  		if(Keyboard.isKeyDown(Keyboard.KEY_F3)) {
 -			var8.drawStringWithShadow("Minecraft Beta 1.2_02 (" + this.mc.debug + ")", 2, 2, 16777215);
-+			var8.drawStringWithShadow("Minecraft \u00A74Error 698 r5\u00A7r (" + this.mc.debug + ")", 2, 2, 16777215);
++			var8.drawStringWithShadow("Minecraft \u00A74Error 698 r6\u00A7r (" + this.mc.debug + ")", 2, 2, 16777215);
  			var8.drawStringWithShadow(this.mc.func_6241_m(), 2, 12, 16777215);
  			var8.drawStringWithShadow(this.mc.func_6262_n(), 2, 22, 16777215);
  			var8.drawStringWithShadow(this.mc.func_6245_o(), 2, 32, 16777215);
@@ -512,7 +512,7 @@
  			this.drawString(var8, "z: " + this.mc.thePlayer.posZ, 2, 80, 14737632);
  		} else {
 -			var8.drawStringWithShadow("Minecraft Beta 1.2_02", 2, 2, 16777215);
-+			var8.drawStringWithShadow("Minecraft \u00A74Error 698 r5", 2, 2, 16777215);
++			var8.drawStringWithShadow("Minecraft \u00A74Error 698 r6", 2, 2, 16777215);
  		}
  
  		if(this.field_9419_j > 0) {
@@ -1415,7 +1415,7 @@
  			var5 = var5 + "Generated " + (new SimpleDateFormat()).format(new Date()) + "\n";
  			var5 = var5 + "\n";
 -			var5 = var5 + "Minecraft: Minecraft Beta 1.2_02\n";
-+			var5 = var5 + "Minecraft: Minecraft Error 698 r5\n";
++			var5 = var5 + "Minecraft: Minecraft Error 698 r6\n";
  			var5 = var5 + "OS: " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ") version " + System.getProperty("os.version") + "\n";
  			var5 = var5 + "Java: " + System.getProperty("java.version") + ", " + System.getProperty("java.vendor") + "\n";
  			var5 = var5 + "VM: " + System.getProperty("java.vm.name") + " (" + System.getProperty("java.vm.info") + "), " + System.getProperty("java.vm.vendor") + "\n";
@@ -1492,7 +1492,7 @@
  		Object var6 = (TileEntityChest)var1.getBlockTileEntity(var2, var3, var4);
  		if(var1.isBlockOpaqueCube(var2, var3 + 1, var4)) {
  			return true;
-@@ -196,5 +209,33 @@
+@@ -196,5 +209,31 @@
  
  	protected TileEntity getBlockEntity() {
  		return new TileEntityChest();
@@ -1507,8 +1507,8 @@
 +
 +	public void eventS(World var1, int var2, int var3, int var4) {
 +		if(!var1.multiplayerWorld) {
-+			if(new Random().nextBoolean()) {
-+				if(new Random().nextBoolean()) {
++			if(this.random.nextInt(5) == 0) {
++				if(this.random.nextBoolean()) {
 +					EntityFieldx2 fieldx2 = new EntityFieldx2(var1);
 +					fieldx2.setPosition(var2, var3, var4);
 +					var1.entityJoinedWorld(fieldx2);
@@ -1518,9 +1518,7 @@
 +					var1.entityJoinedWorld(noiseFree);
 +				}
 +			} else {
-+				if(new Random().nextBoolean()) {
-+					this.dropitemsX(var1, var2, var3, var4, new ItemStack(Item.NotSoup, new Random().nextInt(3) + 1));
-+				}
++				this.dropitemsX(var1, var2, var3, var4, new ItemStack(Item.NotSoup, new Random().nextInt(3) + 1));
 +			}
 +			var1.setBlockWithNotify(var2, var3, var4, 0);
 +		}
@@ -1985,7 +1983,7 @@
  		}
  
 -		Display.setTitle("Minecraft Minecraft Beta 1.2_02");
-+		Display.setTitle("Minecraft Minecraft Error 698 r5");
++		Display.setTitle("Minecraft Minecraft Error 698 r6");
  
  		try {
  			Display.create();
@@ -2100,17 +2098,6 @@
  													this.displayGuiScreen(new GuiChat());
  												}
  											}
-@@ -1300,8 +1322,8 @@
- 			this.usePortal();
- 		}
- 
--		int var1 = this.theWorld.spawnX;
--		int var2 = this.theWorld.spawnZ;
-+		int var1 = this.thePlayer.spawnX;
-+		int var2 = this.thePlayer.spawnZ;
- 		IChunkProvider var3 = this.theWorld.func_21118_q();
- 		if(var3 instanceof ChunkProviderLoadOrGenerate) {
- 			ChunkProviderLoadOrGenerate var4 = (ChunkProviderLoadOrGenerate)var3;
 --- net/minecraft/src/EntityPlayerSP.java
 +++ net/minecraft/src/EntityPlayerSP.java
 @@ -119,6 +119,9 @@
@@ -2169,30 +2156,25 @@
  
  public abstract class EntityPlayer extends EntityLiving {
  	public InventoryPlayer inventory = new InventoryPlayer(this);
-@@ -23,13 +25,21 @@
+@@ -23,13 +25,17 @@
  	public double field_20061_w;
  	private int damageRemainder = 0;
  	public EntityFish fishEntity = null;
 +	private boolean lagS = false;
 +	private int lag = 0;
-+	public int spawnX = 0;
-+	public int spawnZ = 0;
-+	public int spawnY = worldObj.getBlockMaxY(spawnX, spawnZ);
  
  	public EntityPlayer(World var1) {
  		super(var1);
-+		int var5 = spawnX;
-+		int var7 = spawnY;
-+		int var6 = spawnZ;
  		this.field_20069_g = new CraftingInventoryPlayerCB(this.inventory, !var1.multiplayerWorld);
  		this.craftingInventory = this.field_20069_g;
  		this.yOffset = 1.62F;
--		this.setLocationAndAngles((double)var1.spawnX + 0.5D, (double)(var1.spawnY + 1), (double)var1.spawnZ + 0.5D, 0.0F, 0.0F);
-+		this.setLocationAndAngles((double)var5 + 0.5D, (double)var7, (double)var6 + 0.5D, 0.0F, 0.0F);
++
+ 		this.setLocationAndAngles((double)var1.spawnX + 0.5D, (double)(var1.spawnY + 1), (double)var1.spawnZ + 0.5D, 0.0F, 0.0F);
++
  		this.health = 20;
  		this.field_9351_C = "humanoid";
  		this.field_9353_B = 180.0F;
-@@ -120,6 +130,8 @@
+@@ -120,6 +126,8 @@
  	public void onLivingUpdate() {
  		if(this.worldObj.difficultySetting == 0 && this.health < 20 && this.ticksExisted % 20 * 12 == 0) {
  			this.heal(1);
@@ -2201,7 +2183,7 @@
  		}
  
  		this.inventory.decrementAnimations();
-@@ -152,7 +164,21 @@
+@@ -152,7 +160,21 @@
  				}
  			}
  		}
@@ -2224,26 +2206,7 @@
  	}
  
  	private void func_451_h(Entity var1) {
-@@ -250,12 +276,18 @@
- 		NBTTagList var2 = var1.getTagList("Inventory");
- 		this.inventory.readFromNBT(var2);
- 		this.dimension = var1.getInteger("Dimension");
-+		this.spawnX = var1.getInteger("spawnX");
-+		this.spawnY = var1.getInteger("spawnY");
-+		this.spawnZ = var1.getInteger("spawnZ");
- 	}
- 
- 	public void writeEntityToNBT(NBTTagCompound var1) {
- 		super.writeEntityToNBT(var1);
- 		var1.setTag("Inventory", this.inventory.writeToNBT(new NBTTagList()));
- 		var1.setInteger("Dimension", this.dimension);
-+		var1.setInteger("spawnX", this.spawnX);
-+		var1.setInteger("spawnY", this.spawnY);
-+		var1.setInteger("spawnZ", this.spawnZ);
- 	}
- 
- 	public void displayGUIChest(IInventory var1) {
-@@ -287,6 +319,118 @@
+@@ -287,6 +309,62 @@
  
  				if(this.worldObj.difficultySetting == 3) {
  					var2 = var2 * 3 / 2;
@@ -2268,6 +2231,7 @@
 +					}
 +				}
 +				if(var1 instanceof EntityShould) {
++					var1.setEntityDead();
 +					if(new Random().nextInt(10) == 0) {
 +						new Thread(()->WavPlaySound.playsound("/sounds/should.wav")).start();
 +						try {
@@ -2275,63 +2239,6 @@
 +						} catch (InterruptedException e) {
 +							throw new RuntimeException(e);
 +						}
-+						var1.setEntityDead();
-+						throw new Error("\u5f41\u5496\ud847\udcfe\ud840\udd0d\u8fd7\u9007\ufa27\u98dd");
-+					}
-+				}
-+				if(var1 instanceof EntityFieldx2) {
-+					if(this instanceof EntityPlayerSP) {
-+						new Thread(()->WavPlaySound.playsound("/sounds/fieldx2.wav")).start();
-+						((EntityPlayerSP)this).mc.timerS[2] = true;
-+						var1.setEntityDead();
-+					}
-+				}
-+				if(var1 instanceof EntityLagFix) {
-+					if(new Random().nextInt(6) == 0) {
-+						this.lagS = true;
-+						var1.setEntityDead();
-+					}
-+					if(new Random().nextInt(10) == 0) {
-+						if(this instanceof EntityPlayerSP) {
-+							((EntityPlayerSP)this).mc.lagS = true;
-+							var1.setEntityDead();
-+						}
-+					}
-+				}
-+				if(var1 instanceof EntityLongNONO) {
-+					this.setPosition(this.posX, this.worldObj.getBlockMaxY((int)this.posX, (int)this.posZ) + 3, this.posZ);
-+					var1.setEntityDead();
-+					new Thread(()->WavPlaySound.playsound("/sounds/NONO.wav")).start();
-+					Minecraft.theMinecraft.timerS[4] = true;
-+				}
-+			}
-+
-+			if(!this.worldObj.multiplayerWorld) {
-+				if(var1 instanceof EntityIrregularity) {
-+					if(this instanceof EntityPlayerSP) {
-+						((EntityPlayerSP)this).mc.irregularity = false;
-+						((EntityPlayerSP)this).mc.timerS[0] = true;
-+					}
-+					var1.setEntityDead();
-+				}
-+				if(var1 instanceof EntityPP) {
-+					if(new Random().nextBoolean()) {
-+						this.worldObj.createExplosion(var1, 3.0F);
-+						var1.setEntityDead();
-+					} else {
-+						this.inventory.dropAllItems();
-+						var1.setEntityDead();
-+					}
-+				}
-+				if(var1 instanceof EntityShould) {
-+					if(new Random().nextInt(10) == 0) {
-+						new Thread(()->WavPlaySound.playsound("/sounds/should.wav")).start();
-+						try {
-+							Thread.sleep(4000);
-+						} catch (InterruptedException e) {
-+							throw new RuntimeException(e);
-+						}
-+						var1.setEntityDead();
 +						throw new Error("\u5f41\u5496\ud847\udcfe\ud840\udd0d\u8fd7\u9007\ufa27\u98dd");
 +					}
 +				}

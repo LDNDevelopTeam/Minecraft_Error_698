@@ -51,7 +51,7 @@
  public class ItemFood extends Item {
  	private int healAmount;
  
-@@ -12,6 +14,18 @@
+@@ -12,6 +14,19 @@
  	public ItemStack onItemRightClick(ItemStack var1, World var2, EntityPlayer var3) {
  		--var1.stackSize;
  		var3.heal(this.healAmount);
@@ -63,6 +63,7 @@
 +					var3.spawnX = (int)var3.posX;
 +					var3.spawnY = (int)var3.posY;
 +					var3.spawnZ = (int)var3.posZ;
++					var3.spawnB = true;
 +					((EntityPlayerMP)var3).field_20908_a.sendPacket(new Packet3Chat("Set Spawnono"));
 +				}
 +			}
@@ -172,17 +173,6 @@
  		SpawnerAnimals.performSpawning(this, this.field_21121_K, this.field_21120_L);
  		this.chunkProvider.func_361_a();
  		int var1 = this.calculateSkylightSubtracted(1.0F);
---- net/minecraft/src/NetLoginHandler.java
-+++ net/minecraft/src/NetLoginHandler.java
-@@ -84,7 +84,7 @@
- 			logger.info(this.getUserAndIPString() + " logged in with entity id " + var2.entityId);
- 			NetServerHandler var3 = new NetServerHandler(this.mcServer, this.netManager, var2);
- 			var3.sendPacket(new Packet1Login("", "", var2.entityId, this.mcServer.worldMngr.randomSeed, (byte)this.mcServer.worldMngr.worldProvider.worldType));
--			var3.sendPacket(new Packet6SpawnPosition(this.mcServer.worldMngr.spawnX, this.mcServer.worldMngr.spawnY, this.mcServer.worldMngr.spawnZ));
-+			var3.sendPacket(new Packet6SpawnPosition(var2.spawnX, var2.spawnY, var2.spawnZ));
- 			this.mcServer.configManager.sendPacketToAllPlayers(new Packet3Chat("\u00a7e" + var2.username + " joined the game."));
- 			this.mcServer.configManager.playerLoggedIn(var2);
- 			var3.func_41_a(var2.posX, var2.posY, var2.posZ, var2.rotationYaw, var2.rotationPitch);
 --- net/minecraft/src/Entity.java
 +++ net/minecraft/src/Entity.java
 @@ -605,8 +605,10 @@
@@ -798,6 +788,50 @@
 +		}
 +	}
 +}
+--- net/minecraft/src/ServerConfigurationManager.java
++++ net/minecraft/src/ServerConfigurationManager.java
+@@ -102,14 +102,31 @@
+ 	}
+ 
+ 	public EntityPlayerMP func_9242_d(EntityPlayerMP var1) {
++		int spawnXS = var1.spawnX;
++		int spawnYS = var1.spawnY;
++		int spawnZS = var1.spawnZ;
++		boolean spawnBS = var1.spawnB;
+ 		this.mcServer.field_6028_k.func_9238_a(var1);
+ 		this.mcServer.field_6028_k.func_610_b(var1);
+ 		this.playerManagerObj.removePlayer(var1);
+ 		this.playerEntities.remove(var1);
+ 		this.mcServer.worldMngr.func_20110_e(var1);
++
+ 		EntityPlayerMP var2 = new EntityPlayerMP(this.mcServer, this.mcServer.worldMngr, var1.username, new ItemInWorldManager(this.mcServer.worldMngr));
++
++		var2.spawnX = spawnXS;
++		var2.spawnY = spawnYS;
++		var2.spawnZ = spawnZS;
++		var2.spawnB = spawnBS;
+ 		var2.entityId = var1.entityId;
+ 		var2.field_20908_a = var1.field_20908_a;
++
++		if(var2.spawnB) {
++			var2.setLocationAndAngles((double)var2.spawnX + 0.5D, (double)(var2.spawnY + 1), (double)var2.spawnZ + 0.5D, 0.0F, 0.0F);
++		} else {
++			var2.setLocationAndAngles((double)this.mcServer.worldMngr.spawnX + 0.5D, (double)(this.mcServer.worldMngr.spawnY + 1), (double)this.mcServer.worldMngr.spawnZ + 0.5D, 0.0F, 0.0F);
++		}
++
+ 		this.mcServer.worldMngr.field_20911_y.loadChunk((int)var2.posX >> 4, (int)var2.posZ >> 4);
+ 
+ 		while(this.mcServer.worldMngr.getCollidingBoundingBoxes(var2, var2.boundingBox).size() != 0) {
+@@ -117,7 +134,9 @@
+ 		}
+ 
+ 		var2.field_20908_a.sendPacket(new Packet9());
++
+ 		var2.field_20908_a.func_41_a(var2.posX, var2.posY, var2.posZ, var2.rotationYaw, var2.rotationPitch);
++
+ 		this.playerManagerObj.addPlayer(var2);
+ 		this.mcServer.worldMngr.entityJoinedWorld(var2);
+ 		this.playerEntities.add(var2);
 --- net/minecraft/src/Block.java
 +++ net/minecraft/src/Block.java
 @@ -112,6 +112,8 @@
@@ -865,7 +899,7 @@
  			float var3 = 1.0F - (float)var2 / 15.0F;
 --- net/minecraft/src/EntityPlayerMP.java
 +++ net/minecraft/src/EntityPlayerMP.java
-@@ -23,14 +23,9 @@
+@@ -23,16 +23,23 @@
  
  	public EntityPlayerMP(MinecraftServer var1, World var2, String var3, ItemInWorldManager var4) {
  		super(var2);
@@ -877,12 +911,27 @@
 -			var7 = var2.findTopSolidBlock(var5, var6);
 -			var6 += this.rand.nextInt(20) - 10;
 -		}
-+		int var5 = spawnX;
-+		int var7 = spawnY;
-+		int var6 = spawnZ;
++		if(this.spawnB){
++			int var5 = this.spawnX;
++			int var6 = this.spawnZ;
++			int var7 = this.spawnY;
++			this.setLocationAndAngles((double)var5 + 0.5D, (double)var7, (double)var6 + 0.5D, 0.0F, 0.0F);
++		}else {
++			int var5 = var2.spawnX;
++			int var6 = var2.spawnZ;
++			int var7 = var2.spawnY;
++			if(!var2.worldProvider.field_4306_c) {
++				var5 += this.rand.nextInt(20) - 10;
++				var7 = var2.findTopSolidBlock(var5, var6);
++				var6 += this.rand.nextInt(20) - 10;
++			}
  
- 		this.setLocationAndAngles((double)var5 + 0.5D, (double)var7, (double)var6 + 0.5D, 0.0F, 0.0F);
+-		this.setLocationAndAngles((double)var5 + 0.5D, (double)var7, (double)var6 + 0.5D, 0.0F, 0.0F);
++			this.setLocationAndAngles((double)var5 + 0.5D, (double)var7, (double)var6 + 0.5D, 0.0F, 0.0F);
++		}
  		this.mcServer = var1;
+ 		this.stepHeight = 0.0F;
+ 		var4.field_675_a = this;
 --- net/minecraft/src/Item.java
 +++ net/minecraft/src/Item.java
 @@ -106,6 +106,7 @@
@@ -1437,7 +1486,7 @@
  		Object var6 = (TileEntityChest)var1.getBlockTileEntity(var2, var3, var4);
  		if(var1.isBlockOpaqueCube(var2, var3 + 1, var4)) {
  			return true;
-@@ -109,5 +122,31 @@
+@@ -109,5 +122,29 @@
  
  	protected TileEntity getBlockEntity() {
  		return new TileEntityChest();
@@ -1449,10 +1498,10 @@
 +		}
 +		return super.idDropped(var1, var2);
 +	}
-+	
++
 +	public void eventS(World var1, int var2, int var3, int var4) {
-+		if(new Random().nextBoolean()) {
-+			if(new Random().nextBoolean()) {
++		if(this.random.nextInt(5) == 0) {
++			if(this.random.nextBoolean()) {
 +				EntityFieldx2 fieldx2 = new EntityFieldx2(var1);
 +				fieldx2.setPosition(var2, var3, var4);
 +				var1.entityJoinedWorld(fieldx2);
@@ -1462,9 +1511,7 @@
 +				var1.entityJoinedWorld(noiseFree);
 +			}
 +		} else {
-+			if(new Random().nextBoolean()) {
-+				this.dropitemsX(var1, var2, var3, var4, new ItemStack(Item.NotSoup, new Random().nextInt(3) + 1));
-+			}
++			this.dropitemsX(var1, var2, var3, var4, new ItemStack(Item.NotSoup, new Random().nextInt(3) + 1));
 +		}
 +		var1.setBlockWithNotify(var2, var3, var4, 0);
  	}
@@ -1817,7 +1864,7 @@
  		var1.start();
  		ConsoleLogManager.init();
 -		logger.info("Starting minecraft server version Beta 1.2_01");
-+		logger.info("Starting minecraft server version Error 698 r5");
++		logger.info("Starting minecraft server version Error 698 r6");
  		if(Runtime.getRuntime().maxMemory() / 1024L / 1024L < 512L) {
  			logger.warning("**** NOT ENOUGH RAM!");
  			logger.warning("To start the server with more ram, launch it as \"java -Xmx1024M -Xms1024M -jar minecraft_server.jar\"");
@@ -1876,7 +1923,7 @@
  
  public abstract class EntityPlayer extends EntityLiving {
  	public InventoryPlayer inventory = new InventoryPlayer(this);
-@@ -22,18 +23,30 @@
+@@ -22,18 +23,32 @@
  	public double field_20048_aD;
  	private int damageRemainder = 0;
  	public EntityFish fishEntity = null;
@@ -1884,20 +1931,22 @@
 +	private int lag = 0;
 +	public boolean[] timerS;
 +	public int[] timer;
-+	public int spawnX = 0;
-+	public int spawnZ = 0;
-+	public int spawnY = worldObj.getBlockMaxY(spawnX, spawnZ);
++	public int spawnX;
++	public int spawnY;
++	public int spawnZ;
++	public boolean spawnB;
  
  	public EntityPlayer(World var1) {
  		super(var1);
-+		int var5 = spawnX;
-+		int var7 = spawnY;
-+		int var6 = spawnZ;
  		this.field_20053_ao = new CraftingInventoryPlayerCB(this.inventory, !var1.multiplayerWorld);
  		this.craftingInventory = this.field_20053_ao;
  		this.yOffset = 1.62F;
 -		this.setLocationAndAngles((double)var1.spawnX + 0.5D, (double)(var1.spawnY + 1), (double)var1.spawnZ + 0.5D, 0.0F, 0.0F);
-+		this.setLocationAndAngles((double)var5 + 0.5D, (double)var7, (double)var6 + 0.5D, 0.0F, 0.0F);
++		if(this.spawnB) {
++			this.setLocationAndAngles((double)this.spawnX + 0.5D, (double)(this.spawnY + 1), (double)this.spawnZ + 0.5D, 0.0F, 0.0F);
++		} else {
++			this.setLocationAndAngles((double)var1.spawnX + 0.5D, (double)(var1.spawnY + 1), (double)var1.spawnZ + 0.5D, 0.0F, 0.0F);
++		}
  		this.health = 20;
  		this.field_9116_aJ = "humanoid";
  		this.field_9117_aI = 180.0F;
@@ -1908,7 +1957,7 @@
  	}
  
  	public void onUpdate() {
-@@ -104,8 +117,18 @@
+@@ -104,8 +119,18 @@
  	}
  
  	public void onLivingUpdate() {
@@ -1927,7 +1976,7 @@
  		}
  
  		this.inventory.decrementAnimations();
-@@ -139,6 +162,42 @@
+@@ -139,6 +164,24 @@
  			}
  		}
  
@@ -1949,34 +1998,17 @@
 +			}
 +		}
 +
-+		if(this.lagS) {
-+			this.lag++;
-+			this.posX = (int)this.posX;
-+			this.posY = (int)this.posY;
-+			this.posZ = (int)this.posZ;
-+			this.prevPosX = (int)this.posX;
-+			this.prevPosY = (int)this.posY;
-+			this.prevPosZ = (int)this.posZ;
-+			if(this.lag % 10 == 0) {
-+				if(this instanceof EntityPlayerMP) {
-+					((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet81Sound("/sounds/" + new Random().nextInt(3) + ".wav"));
-+				}
-+			}
-+			if(this.lag >= 20 * 10) {
-+				this.lagS = false;
-+			}
-+		}
-+
  	}
  
  	private void func_171_h(Entity var1) {
-@@ -232,12 +291,18 @@
+@@ -232,12 +275,20 @@
  		NBTTagList var2 = var1.getTagList("Inventory");
  		this.inventory.readFromNBT(var2);
  		this.dimension = var1.getInteger("Dimension");
 +		this.spawnX = var1.getInteger("spawnX");
 +		this.spawnY = var1.getInteger("spawnY");
 +		this.spawnZ = var1.getInteger("spawnZ");
++		this.spawnB = var1.getBoolean("spawnB");
  	}
  
  	public void writeEntityToNBT(NBTTagCompound var1) {
@@ -1986,10 +2018,11 @@
 +		var1.setInteger("spawnX", this.spawnX);
 +		var1.setInteger("spawnY", this.spawnY);
 +		var1.setInteger("spawnZ", this.spawnZ);
++		var1.setBoolean("spawnB", this.spawnB);
  	}
  
  	public void displayGUIChest(IInventory var1) {
-@@ -270,6 +335,59 @@
+@@ -270,6 +321,59 @@
  				if(this.worldObj.difficultySetting == 3) {
  					var2 = var2 * 3 / 2;
  				}
@@ -2012,8 +2045,8 @@
 +				}
 +			}
 +			if(var1 instanceof EntityShould) {
++				var1.setEntityDead();
 +				if(new Random().nextInt(20) == 0) {
-+					var1.setEntityDead();
 +					if(this instanceof EntityPlayerMP) {
 +						((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet80Event(4));
 +						((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet255KickDisconnect("Should me"));
