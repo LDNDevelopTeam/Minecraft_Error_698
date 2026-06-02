@@ -545,6 +545,21 @@
 +		return null;
 +	}
 +}
+--- net/minecraft/src/EnumCreatureType.java
++++ net/minecraft/src/EnumCreatureType.java
+@@ -1,9 +1,9 @@
+ package net.minecraft.src;
+ 
+ public enum EnumCreatureType {
+-	monster(IMobs.class, 70, Material.air, false),
+-	creature(EntityAnimals.class, 15, Material.air, true),
+-	waterCreature(EntityWaterMob.class, 5, Material.water, true);
++	monster(IMobs.class, 40, Material.air, false),
++	creature(EntityAnimals.class, 3, Material.air, true),
++	waterCreature(EntityWaterMob.class, 2, Material.water, true);
+ 
+ 	private final Class creatureClass;
+ 	private final int maxNumberOfCreature;
 --- /dev/null
 +++ net/minecraft/src/EntityIrregularity.java
 @@ -1,0 +1,48 @@
