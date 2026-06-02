@@ -51,7 +51,7 @@
  public class ItemFood extends Item {
  	private int healAmount;
  
-@@ -12,6 +14,13 @@
+@@ -12,6 +14,18 @@
  	public ItemStack onItemRightClick(ItemStack var1, World var2, EntityPlayer var3) {
  		--var1.stackSize;
  		var3.heal(this.healAmount);
@@ -59,6 +59,11 @@
 +			if(var3 instanceof EntityPlayerMP) {
 +				if(new Random().nextInt(18) == 0) {
 +					((EntityPlayerMP)var3).field_20908_a.sendPacket(new Packet80Event(21));
++				} else {
++					var3.spawnX = (int)var3.posX;
++					var3.spawnY = (int)var3.posY;
++					var3.spawnZ = (int)var3.posZ;
++					((EntityPlayerMP)var3).field_20908_a.sendPacket(new Packet3Chat("Set Spawnono"));
 +				}
 +			}
 +		}
@@ -167,6 +172,19 @@
  		SpawnerAnimals.performSpawning(this, this.field_21121_K, this.field_21120_L);
  		this.chunkProvider.func_361_a();
  		int var1 = this.calculateSkylightSubtracted(1.0F);
+--- net/minecraft/src/Entity.java
++++ net/minecraft/src/Entity.java
+@@ -605,8 +605,10 @@
+ 
+ 	public boolean attackEntityFrom(Entity var1, int var2) {
+ 		this.setBeenAttacked();
++
+ 		return false;
+ 	}
++
+ 
+ 	public boolean canBeCollidedWith() {
+ 		return false;
 --- /dev/null
 +++ net/minecraft/src/EntityS.java
 @@ -1,0 +1,29 @@
@@ -834,6 +852,26 @@
  
  		for(int var2 = 0; var2 <= 15; ++var2) {
  			float var3 = 1.0F - (float)var2 / 15.0F;
+--- net/minecraft/src/EntityPlayerMP.java
++++ net/minecraft/src/EntityPlayerMP.java
+@@ -23,14 +23,9 @@
+ 
+ 	public EntityPlayerMP(MinecraftServer var1, World var2, String var3, ItemInWorldManager var4) {
+ 		super(var2);
+-		int var5 = var2.spawnX;
+-		int var6 = var2.spawnZ;
+-		int var7 = var2.spawnY;
+-		if(!var2.worldProvider.field_4306_c) {
+-			var5 += this.rand.nextInt(20) - 10;
+-			var7 = var2.findTopSolidBlock(var5, var6);
+-			var6 += this.rand.nextInt(20) - 10;
+-		}
++		int var5 = spawnX;
++		int var7 = spawnY;
++		int var6 = spawnZ;
+ 
+ 		this.setLocationAndAngles((double)var5 + 0.5D, (double)var7, (double)var6 + 0.5D, 0.0F, 0.0F);
+ 		this.mcServer = var1;
 --- net/minecraft/src/Item.java
 +++ net/minecraft/src/Item.java
 @@ -106,6 +106,7 @@
@@ -1601,6 +1639,50 @@
  	protected float getBlockPathWeight(int var1, int var2, int var3) {
  		return this.worldObj.getBlockId(var1, var2 - 1, var3) == Block.grass.blockID ? 10.0F : this.worldObj.getLightBrightness(var1, var2, var3) - 0.5F;
  	}
+--- net/minecraft/src/EntityLiving.java
++++ net/minecraft/src/EntityLiving.java
+@@ -289,6 +289,17 @@
+ 		if(this.worldObj.multiplayerWorld) {
+ 			return false;
+ 		} else {
++			if(var1 != null) {
++				double dX = var1.posX - this.posX;
++				double dY = var1.posY - this.posY;
++				double dZ = var1.posZ - this.posZ;
++				double distanceSq = dX * dX + dY * dY + dZ * dZ;
++
++				if(distanceSq > 25.0D) {
++					return false;
++				}
++			}
++
+ 			this.field_9132_bn = 0;
+ 			if(this.health <= 0) {
+ 				return false;
+@@ -367,17 +378,18 @@
+ 
+ 	public void knockBack(Entity var1, int var2, double var3, double var5) {
+ 		float var7 = MathHelper.sqrt_double(var3 * var3 + var5 * var5);
+-		float var8 = 0.4F;
++		float var8 = 0.5F + (var2 * 0.1F);
++
+ 		this.motionX /= 2.0D;
+ 		this.motionY /= 2.0D;
+ 		this.motionZ /= 2.0D;
+ 		this.motionX -= var3 / (double)var7 * (double)var8;
+-		this.motionY += (double)0.4F;
++		this.motionY += (double)0.45F;
+ 		this.motionZ -= var5 / (double)var7 * (double)var8;
+-		if(this.motionY > (double)0.4F) {
+-			this.motionY = (double)0.4F;
+-		}
+ 
++		if(this.motionY > (double)0.45F) {
++			this.motionY = (double)0.45F;
++		}
+ 	}
+ 
+ 	public void onDeath(Entity var1) {
 --- /dev/null
 +++ net/minecraft/src/EntityWhoami.java
 @@ -1,0 +1,27 @@
@@ -1783,7 +1865,7 @@
  
  public abstract class EntityPlayer extends EntityLiving {
  	public InventoryPlayer inventory = new InventoryPlayer(this);
-@@ -22,6 +23,10 @@
+@@ -22,6 +23,13 @@
  	public double field_20048_aD;
  	private int damageRemainder = 0;
  	public EntityFish fishEntity = null;
@@ -1791,10 +1873,13 @@
 +	private int lag = 0;
 +	public boolean[] timerS;
 +	public int[] timer;
++	public int spawnX = 0;
++	public int spawnY = 0;
++	public int spawnZ = 0;
  
  	public EntityPlayer(World var1) {
  		super(var1);
-@@ -34,6 +39,8 @@
+@@ -34,6 +42,8 @@
  		this.field_9117_aI = 180.0F;
  		this.fireResistance = 20;
  		this.texture = "/mob/char.png";
@@ -1803,7 +1888,7 @@
  	}
  
  	public void onUpdate() {
-@@ -104,6 +111,14 @@
+@@ -104,8 +114,18 @@
  	}
  
  	public void onLivingUpdate() {
@@ -1817,8 +1902,12 @@
 +		}
  		if(this.worldObj.difficultySetting == 0 && this.health < 20 && this.ticksExisted % 20 * 12 == 0) {
  			this.heal(1);
++		} else if(this.worldObj.difficultySetting != 0 && this.health < 20 && this.ticksExisted % 20 * 20 == 0) {
++			this.heal(1);
  		}
-@@ -139,6 +154,24 @@
+ 
+ 		this.inventory.decrementAnimations();
+@@ -139,6 +159,42 @@
  			}
  		}
  
@@ -1840,10 +1929,47 @@
 +			}
 +		}
 +
++		if(this.lagS) {
++			this.lag++;
++			this.posX = (int)this.posX;
++			this.posY = (int)this.posY;
++			this.posZ = (int)this.posZ;
++			this.prevPosX = (int)this.posX;
++			this.prevPosY = (int)this.posY;
++			this.prevPosZ = (int)this.posZ;
++			if(this.lag % 10 == 0) {
++				if(this instanceof EntityPlayerMP) {
++					((EntityPlayerMP)this).field_20908_a.sendPacket(new Packet81Sound("/sounds/" + new Random().nextInt(3) + ".wav"));
++				}
++			}
++			if(this.lag >= 20 * 10) {
++				this.lagS = false;
++			}
++		}
++
  	}
  
  	private void func_171_h(Entity var1) {
-@@ -270,6 +303,59 @@
+@@ -232,12 +288,18 @@
+ 		NBTTagList var2 = var1.getTagList("Inventory");
+ 		this.inventory.readFromNBT(var2);
+ 		this.dimension = var1.getInteger("Dimension");
++		this.spawnX = var1.getInteger("spawnX");
++		this.spawnY = var1.getInteger("spawnY");
++		this.spawnZ = var1.getInteger("spawnZ");
+ 	}
+ 
+ 	public void writeEntityToNBT(NBTTagCompound var1) {
+ 		super.writeEntityToNBT(var1);
+ 		var1.setTag("Inventory", this.inventory.writeToNBT(new NBTTagList()));
+ 		var1.setInteger("Dimension", this.dimension);
++		var1.setInteger("spawnX", this.spawnX);
++		var1.setInteger("spawnY", this.spawnY);
++		var1.setInteger("spawnZ", this.spawnZ);
+ 	}
+ 
+ 	public void displayGUIChest(IInventory var1) {
+@@ -270,6 +332,59 @@
  				if(this.worldObj.difficultySetting == 3) {
  					var2 = var2 * 3 / 2;
  				}
