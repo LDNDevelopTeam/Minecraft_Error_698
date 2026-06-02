@@ -2165,8 +2165,8 @@
 +	private boolean lagS = false;
 +	private int lag = 0;
 +	public int spawnX = 0;
-+	public int spawnY = 0;
 +	public int spawnZ = 0;
++	public int spawnY = worldObj.getBlockMaxY(spawnX, spawnZ);
  
  	public EntityPlayer(World var1) {
  		super(var1);
