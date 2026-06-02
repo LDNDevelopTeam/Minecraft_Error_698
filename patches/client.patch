@@ -2100,6 +2100,17 @@
  													this.displayGuiScreen(new GuiChat());
  												}
  											}
+@@ -1300,8 +1322,8 @@
+ 			this.usePortal();
+ 		}
+ 
+-		int var1 = this.theWorld.spawnX;
+-		int var2 = this.theWorld.spawnZ;
++		int var1 = this.thePlayer.spawnX;
++		int var2 = this.thePlayer.spawnZ;
+ 		IChunkProvider var3 = this.theWorld.func_21118_q();
+ 		if(var3 instanceof ChunkProviderLoadOrGenerate) {
+ 			ChunkProviderLoadOrGenerate var4 = (ChunkProviderLoadOrGenerate)var3;
 --- net/minecraft/src/EntityPlayerSP.java
 +++ net/minecraft/src/EntityPlayerSP.java
 @@ -119,6 +119,9 @@

@@ -172,6 +172,17 @@
  		SpawnerAnimals.performSpawning(this, this.field_21121_K, this.field_21120_L);
  		this.chunkProvider.func_361_a();
  		int var1 = this.calculateSkylightSubtracted(1.0F);
+--- net/minecraft/src/NetLoginHandler.java
++++ net/minecraft/src/NetLoginHandler.java
+@@ -84,7 +84,7 @@
+ 			logger.info(this.getUserAndIPString() + " logged in with entity id " + var2.entityId);
+ 			NetServerHandler var3 = new NetServerHandler(this.mcServer, this.netManager, var2);
+ 			var3.sendPacket(new Packet1Login("", "", var2.entityId, this.mcServer.worldMngr.randomSeed, (byte)this.mcServer.worldMngr.worldProvider.worldType));
+-			var3.sendPacket(new Packet6SpawnPosition(this.mcServer.worldMngr.spawnX, this.mcServer.worldMngr.spawnY, this.mcServer.worldMngr.spawnZ));
++			var3.sendPacket(new Packet6SpawnPosition(var2.spawnX, var2.spawnY, var2.spawnZ));
+ 			this.mcServer.configManager.sendPacketToAllPlayers(new Packet3Chat("\u00a7e" + var2.username + " joined the game."));
+ 			this.mcServer.configManager.playerLoggedIn(var2);
+ 			var3.func_41_a(var2.posX, var2.posY, var2.posZ, var2.rotationYaw, var2.rotationPitch);
 --- net/minecraft/src/Entity.java
 +++ net/minecraft/src/Entity.java
 @@ -605,8 +605,10 @@
@@ -1865,7 +1876,7 @@
  
  public abstract class EntityPlayer extends EntityLiving {
  	public InventoryPlayer inventory = new InventoryPlayer(this);
-@@ -22,6 +23,13 @@
+@@ -22,18 +23,30 @@
  	public double field_20048_aD;
  	private int damageRemainder = 0;
  	public EntityFish fishEntity = null;
@@ -1879,7 +1890,16 @@
  
  	public EntityPlayer(World var1) {
  		super(var1);
-@@ -34,6 +42,8 @@
++		int var5 = spawnX;
++		int var7 = spawnY;
++		int var6 = spawnZ;
+ 		this.field_20053_ao = new CraftingInventoryPlayerCB(this.inventory, !var1.multiplayerWorld);
+ 		this.craftingInventory = this.field_20053_ao;
+ 		this.yOffset = 1.62F;
+-		this.setLocationAndAngles((double)var1.spawnX + 0.5D, (double)(var1.spawnY + 1), (double)var1.spawnZ + 0.5D, 0.0F, 0.0F);
++		this.setLocationAndAngles((double)var5 + 0.5D, (double)var7, (double)var6 + 0.5D, 0.0F, 0.0F);
+ 		this.health = 20;
+ 		this.field_9116_aJ = "humanoid";
  		this.field_9117_aI = 180.0F;
  		this.fireResistance = 20;
  		this.texture = "/mob/char.png";
@@ -1888,7 +1908,7 @@
  	}
  
  	public void onUpdate() {
-@@ -104,8 +114,18 @@
+@@ -104,8 +117,18 @@
  	}
  
  	public void onLivingUpdate() {
@@ -1907,7 +1927,7 @@
  		}
  
  		this.inventory.decrementAnimations();
-@@ -139,6 +159,42 @@
+@@ -139,6 +162,42 @@
  			}
  		}
  
@@ -1950,7 +1970,7 @@
  	}
  
  	private void func_171_h(Entity var1) {
-@@ -232,12 +288,18 @@
+@@ -232,12 +291,18 @@
  		NBTTagList var2 = var1.getTagList("Inventory");
  		this.inventory.readFromNBT(var2);
  		this.dimension = var1.getInteger("Dimension");
@@ -1969,7 +1989,7 @@
  	}
  
  	public void displayGUIChest(IInventory var1) {
-@@ -270,6 +332,59 @@
+@@ -270,6 +335,59 @@
  				if(this.worldObj.difficultySetting == 3) {
  					var2 = var2 * 3 / 2;
  				}
